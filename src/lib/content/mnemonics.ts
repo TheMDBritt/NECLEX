@@ -1,3 +1,5 @@
+import type { BeatStyle } from "@/lib/audio/beat-player";
+
 export type MnemonicKind = "acronym" | "sentence" | "image" | "song";
 
 export interface Mnemonic {
@@ -19,8 +21,8 @@ export interface Mnemonic {
   // ---- Song mnemonics ----
   /** Genre / style label, e.g. "Slow trap", "R&B / neo-soul", "Gospel call & response". */
   tune?: string;
-  /** Honest note about the audio: a beat to search for so she can layer her voice on top. */
-  beatSuggestion?: string;
+  /** Beat style for in-browser playback. The audio is synthesized live. */
+  beatStyle?: BeatStyle;
   /** Each entry is one stanza or section, with line breaks preserved. */
   lyrics?: string[];
 
@@ -276,7 +278,7 @@ export const mnemonics: Mnemonic[] = [
     topicSlug: "dka",
     body: "Rap mnemonic for DKA recognition and treatment order.",
     tune: "Rap · slow trap, ~85 BPM",
-    beatSuggestion: "Search YouTube for \"free slow trap type beat 85 BPM\" — pick one with a steady hi-hat and let the verse breathe over it.",
+    beatStyle: "trap-85",
     lyrics: [
 `[Hook]
 Sugar to the sky, breath go fruity, Kussmaul deep
@@ -307,7 +309,7 @@ Otherwise it's fluids, lytes, slow recovery from heaven`,
     topicSlug: "abg",
     body: "Rap-cypher for the four ABG patterns.",
     tune: "Rap · boom-bap, ~92 BPM",
-    beatSuggestion: "Search \"free 90s boom bap type beat 92 BPM\" — pick something with a head-nod groove so each line lands clean.",
+    beatStyle: "boom-bap-92",
     lyrics: [
 `[Hook]
 R-O-M-E, that's the way I read a gas
@@ -335,7 +337,7 @@ DKA, sepsis, kidney shutting up shop`,
     topicSlug: "sepsis",
     body: "Drill-style bars for the Surviving Sepsis Campaign hour-1 bundle.",
     tune: "Rap · drill, ~140 BPM",
-    beatSuggestion: "Search \"free UK drill type beat\" — sliding 808s, sharp hi-hats. Snap each bar on the beat.",
+    beatStyle: "drill-140",
     lyrics: [
 `[Hook]
 Hour one, hour one — get the bundle done
@@ -362,7 +364,7 @@ Septic shock kill quick if you sleep on the conclusion`,
     topicSlug: "adrenal",
     body: "R&B verse comparing the two adrenal opposites.",
     tune: "R&B · neo-soul, slow groove ~70 BPM",
-    beatSuggestion: "Search \"free neo-soul Rhodes type beat 70 BPM\" — soft drums, electric piano. Sing the verses, speak the bridge.",
+    beatStyle: "neo-soul-70",
     lyrics: [
 `[Verse — Cushing]
 Too much cortisol, the body keep the salt and weight
@@ -390,7 +392,7 @@ Crisis: steroid push, IV fluids let it flow`,
     topicSlug: "medication-safety",
     body: "Gospel call-and-response for safe medication administration.",
     tune: "Gospel · call & response, hand-clap tempo",
-    beatSuggestion: "Search \"free gospel piano type beat\" or sing it a cappella — built like a praise-and-worship call between leader and choir.",
+    beatStyle: "gospel-piano",
     lyrics: [
 `[Caller] Right patient!
 [Choir] Two identifiers, every single time
@@ -420,7 +422,7 @@ Right to refuse — honor the patient, every time`,
     topicSlug: "heart-failure",
     body: "R&B verse for left- vs right-sided heart failure.",
     tune: "R&B · neo-soul, mid-tempo ~80 BPM",
-    beatSuggestion: "Search \"free Rhodes neo-soul type beat 80 BPM\" — let the bridge land softer than the verses.",
+    beatStyle: "neo-soul-80",
     lyrics: [
 `[Verse — Left]
 Left side back up, push it to the lungs

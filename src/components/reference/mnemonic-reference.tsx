@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Mnemonic, MnemonicKind } from "@/lib/content/mnemonics";
+import { BeatPlayer } from "@/lib/audio/beat-player";
 import { cn } from "@/lib/utils";
 
 interface MnemonicReferenceProps {
@@ -207,15 +208,7 @@ function SongCard({ m }: { m: Mnemonic }) {
 
       <p className="mt-3 font-body text-[14px] leading-[1.55] text-ink-soft">{m.body}</p>
 
-      {m.beatSuggestion ? (
-        <p className="mt-4 rounded-lg border border-lavender-200 bg-paper px-4 py-3 font-body text-[13px] leading-[1.55] text-ink-soft">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-lavender-800">
-            For the beat
-          </span>
-          <br />
-          {m.beatSuggestion}
-        </p>
-      ) : null}
+      <PlaySongButton mnemonic={m} />
 
       <div className="mt-5 space-y-4">
         {stanzas.map((stanza, i) => (
@@ -229,19 +222,112 @@ function SongCard({ m }: { m: Mnemonic }) {
       </div>
 
       <p className="mt-5 font-body text-[13.5px] italic leading-[1.6] text-ink-soft">{m.clinical}</p>
-
-      <ReadAloudButton mnemonic={m} />
     </article>
   );
 }
 
 /**
- * Real text-to-speech using the browser's Web Speech API. Reads the lyrics
- * (or per-letter lines for non-songs) aloud in the device's English voice.
- *
- * For song mnemonics this is a flat read — it does not generate the actual
- * beat. The `beatSuggestion` on each song points to a free type-beat search
- * the learner can layer underneath.
+ * Plays an actual synthesized beat (Web Audio API) under the lyrics. The
+ * lyrics are read by the browser's text-to-speech voice on top of the beat.
+ * No audio files are loaded — drums and bass are generated live.
+ */
+function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
+  const [supported, setSupported] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const playerRef = useRef<BeatPlayer | null>(null);
+  const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const audioOk = BeatPlayer.isSupported();
+    const ttsOk = "speechSynthesis" in window;
+    setSupported(audioOk || ttsOk);
+    return () => {
+      // Stop everything if the card unmounts
+      if (playerRef.current) playerRef.current.stop();
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  function buildLyricsText(): string {
+    const parts: string[] = [mnemonic.title];
+    if (mnemonic.lyrics?.length) parts.push(...mnemonic.lyrics);
+    return parts.join(". ");
+  }
+
+  async function play() {
+    if (!supported || playing) return;
+    setPlaying(true);
+
+    // Start beat
+    if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
+      const player = new BeatPlayer();
+      playerRef.current = player;
+      await player.start(mnemonic.beatStyle, 0.55);
+    }
+
+    // Start TTS layered on top
+    if ("speechSynthesis" in window) {
+      const synth = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(buildLyricsText());
+      utter.rate = 1.0;
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
+      utter.lang = "en-US";
+      const voices = synth.getVoices();
+      const enVoice =
+        voices.find((v) => v.lang.startsWith("en") && v.localService) ??
+        voices.find((v) => v.lang.startsWith("en"));
+      if (enVoice) utter.voice = enVoice;
+      utter.onend = () => stop();
+      utter.onerror = () => stop();
+      utterRef.current = utter;
+      synth.speak(utter);
+    }
+  }
+
+  function stop() {
+    if (playerRef.current) {
+      playerRef.current.stop();
+      playerRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    utterRef.current = null;
+    setPlaying(false);
+  }
+
+  if (!supported) {
+    return (
+      <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-faint">
+        Audio not available in this browser
+      </p>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => (playing ? stop() : play())}
+      type="button"
+      className={cn(
+        "mt-5 inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
+        playing
+          ? "border-lavender-600 bg-lavender-600 text-paper"
+          : "border-ink/20 bg-paper text-ink hover:border-ink/40",
+      )}
+      aria-pressed={playing}
+    >
+      <span aria-hidden>{playing ? "■" : "▶"}</span>
+      {playing ? "Stop" : "Play song"}
+    </button>
+  );
+}
+
+/**
+ * Read-aloud button for non-song mnemonics — flat TTS read of the lines.
  */
 function ReadAloudButton({ mnemonic }: { mnemonic: Mnemonic }) {
   const [supported, setSupported] = useState(false);
@@ -261,16 +347,13 @@ function ReadAloudButton({ mnemonic }: { mnemonic: Mnemonic }) {
       setSpeaking(false);
       return;
     }
-    const fragments: string[] = [mnemonic.title];
-    if (mnemonic.lyrics?.length) {
-      fragments.push(...mnemonic.lyrics);
-    } else if (mnemonic.lines?.length) {
-      fragments.push(mnemonic.body);
+    const fragments: string[] = [mnemonic.title, mnemonic.body];
+    if (mnemonic.lines?.length) {
       fragments.push(...mnemonic.lines.map((l) => `${l.key}. ${l.meaning}`));
     }
     fragments.push(mnemonic.clinical);
     const utterance = new SpeechSynthesisUtterance(fragments.join(". "));
-    utterance.rate = mnemonic.kind === "song" ? 1.0 : 0.95;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
     utterance.lang = "en-US";
     const voices = synth.getVoices();
@@ -305,7 +388,7 @@ function ReadAloudButton({ mnemonic }: { mnemonic: Mnemonic }) {
       aria-pressed={speaking}
     >
       <span aria-hidden>{speaking ? "■" : "▶"}</span>
-      {speaking ? "Stop" : "Read aloud (TTS)"}
+      {speaking ? "Stop" : "Read aloud"}
     </button>
   );
 }
