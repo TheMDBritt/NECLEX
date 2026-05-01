@@ -2744,6 +2744,137 @@ export const seedMultipleResponseItems: MultipleResponseQuestion[] = [
     rationale: { body: "Risk factors include active SI with plan/means, prior attempts (strongest predictor), recent psychiatric discharge, recent loss, substance use, hopelessness, access to lethal means, and male sex. Protective factors include social support, religious belief (in many traditions), engaged treatment, reasons for living, and restricted access to means. Means restriction is a high-yield intervention.", sources: [NCSBN_RN_PLAN, { label: "Columbia Suicide Severity Rating Scale (C-SSRS)" }] },
     tags: { examTarget: "RN", clientNeed: "psychosocial-integrity", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "mental-health", contentTopic: "suicide-risk", specialty: "mental-health" },
   },
+
+  { id: "mr-cushing-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "A nurse is assessing a client with suspected Cushing syndrome. Which findings would the nurse expect? Select all that apply.",
+    options: [
+      { id: "a", label: "Truncal obesity with thin extremities.", isCorrect: true, feedback: "Cortisol redistributes fat centrally." },
+      { id: "b", label: "Moon face and buffalo hump.", isCorrect: true, feedback: "Classic Cushing appearance." },
+      { id: "c", label: "Purple striae on abdomen and thighs.", isCorrect: true, feedback: "Skin thinning + stretching." },
+      { id: "d", label: "Hyperkalemia.", isCorrect: false, feedback: "Cushing causes HYPOkalemia (mineralocorticoid effect)." },
+      { id: "e", label: "Hyperglycemia.", isCorrect: true, feedback: "Cortisol drives gluconeogenesis." },
+      { id: "f", label: "Bronze hyperpigmentation.", isCorrect: false, feedback: "Hyperpigmentation = Addison's, not Cushing." },
+    ],
+    rationale: { body: "Cushing syndrome (cortisol excess): truncal obesity, moon face, buffalo hump, purple striae, thin skin, easy bruising, hirsutism, HYPER-glycemia, HYPER-tension, HYPO-kalemia, osteoporosis, mood changes. Often iatrogenic from chronic steroid use.", sources: [NCSBN_RN_PLAN, { label: "Endocrine Society Cushing Syndrome Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "endocrine", contentTopic: "cushing", specialty: "med-surg" },
+  },
+  { id: "mr-addison-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which findings are consistent with adrenal insufficiency (Addison disease)? Select all that apply.",
+    options: [
+      { id: "a", label: "Bronze skin hyperpigmentation, especially on knuckles and gums.", isCorrect: true, feedback: "ACTH elevation drives MSH-mediated pigmentation." },
+      { id: "b", label: "Hyponatremia and hyperkalemia.", isCorrect: true, feedback: "Aldosterone deficiency." },
+      { id: "c", label: "Hypoglycemia and weight loss.", isCorrect: true, feedback: "Cortisol deficiency." },
+      { id: "d", label: "Hypertension.", isCorrect: false, feedback: "Addison causes HYPO-tension." },
+      { id: "e", label: "Severe fatigue and salt craving.", isCorrect: true, feedback: "Common Addison findings." },
+      { id: "f", label: "Hirsutism and truncal obesity.", isCorrect: false, feedback: "Cushing pattern, not Addison." },
+    ],
+    rationale: { body: "Addison disease (adrenal insufficiency): low cortisol, low aldosterone → low Na, high K, low BP, low glucose, weight loss, fatigue, bronze hyperpigmentation, salt craving. Crisis = life-threatening shock — give IV hydrocortisone, fluids, glucose. Stress-dose during illness/surgery.", sources: [NCSBN_RN_PLAN, { label: "Endocrine Society Adrenal Insufficiency Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "endocrine", contentTopic: "addisons", specialty: "med-surg" },
+  },
+  { id: "mr-cirrhosis-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "A nurse is assessing a client with advanced cirrhosis. Which findings would the nurse expect? Select all that apply.",
+    options: [
+      { id: "a", label: "Ascites and shifting dullness on percussion.", isCorrect: true, feedback: "Portal hypertension + low albumin." },
+      { id: "b", label: "Asterixis (flapping tremor) on extension of the wrists.", isCorrect: true, feedback: "Hepatic encephalopathy from elevated ammonia." },
+      { id: "c", label: "Spider angiomata and palmar erythema.", isCorrect: true, feedback: "Estrogen elevation in cirrhosis." },
+      { id: "d", label: "Severe hypertension.", isCorrect: false, feedback: "Cirrhosis tends to lower BP, not raise it." },
+      { id: "e", label: "Easy bruising and prolonged INR.", isCorrect: true, feedback: "Liver synthesizes clotting factors." },
+      { id: "f", label: "Hyperactive bowel sounds and weight gain from solid food.", isCorrect: false, feedback: "Anorexia and weight loss are typical." },
+    ],
+    rationale: { body: "Advanced cirrhosis: ascites, hepatosplenomegaly, jaundice, spider angiomata, palmar erythema, gynecomastia, asterixis (encephalopathy), prolonged INR, low albumin, thrombocytopenia, esophageal varices. Treat with lactulose for encephalopathy, beta-blocker for varices, salt restriction, paracentesis for tense ascites.", sources: [NCSBN_RN_PLAN, { label: "AASLD Cirrhosis Practice Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "gi", contentTopic: "cirrhosis", specialty: "med-surg" },
+  },
+  { id: "mr-pneumonia-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which findings would the nurse expect in a client with bacterial community-acquired pneumonia? Select all that apply.",
+    options: [
+      { id: "a", label: "Fever, chills, productive cough with rust-colored sputum.", isCorrect: true, feedback: "Classic Streptococcus pneumoniae." },
+      { id: "b", label: "Dullness to percussion over the affected lobe.", isCorrect: true, feedback: "Consolidation finding." },
+      { id: "c", label: "Bronchial breath sounds heard over consolidated lung.", isCorrect: true, feedback: "Sound transmits clearly through fluid-filled tissue." },
+      { id: "d", label: "Hyper-resonance with absent breath sounds.", isCorrect: false, feedback: "That's pneumothorax." },
+      { id: "e", label: "Pleuritic chest pain on inspiration.", isCorrect: true, feedback: "Pleural inflammation." },
+      { id: "f", label: "Bilateral wheezing without fever.", isCorrect: false, feedback: "More consistent with asthma exacerbation." },
+    ],
+    rationale: { body: "CAP findings: fever, chills, productive cough (often rust-colored with strep), pleuritic chest pain, dyspnea, dullness to percussion, bronchial breath sounds, crackles, increased tactile fremitus. CXR confirms infiltrate. Treat: broad-spectrum antibiotics, oxygen, hydration, mobilization.", sources: [NCSBN_RN_PLAN, { label: "IDSA/ATS CAP Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "respiratory", contentTopic: "pneumonia", specialty: "med-surg" },
+  },
+  { id: "mr-lithium-tox-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which findings indicate lithium toxicity? Select all that apply.",
+    options: [
+      { id: "a", label: "Coarse tremor or muscle twitching.", isCorrect: true, feedback: "Neuromuscular toxicity." },
+      { id: "b", label: "Slurred speech and ataxia.", isCorrect: true, feedback: "CNS toxicity." },
+      { id: "c", label: "Diarrhea and persistent vomiting.", isCorrect: true, feedback: "GI toxicity, often early." },
+      { id: "d", label: "Mild fine tremor of the hands at therapeutic level.", isCorrect: false, feedback: "Fine tremor at therapeutic level is common, not toxicity." },
+      { id: "e", label: "Confusion and disorientation.", isCorrect: true, feedback: "CNS toxicity." },
+      { id: "f", label: "Improvement of mood symptoms.", isCorrect: false, feedback: "That's the therapeutic effect, not toxicity." },
+    ],
+    rationale: { body: "Lithium toxicity (level > 1.5 mEq/L): coarse tremor, muscle twitches, slurred speech, ataxia, confusion, GI symptoms, dysrhythmia at very high levels. Triggers: dehydration, low sodium, NSAIDs, ACEi, thiazides. Hold lithium, hydrate, dialysis for severe (> 4 mEq/L or with renal failure).", sources: [NCSBN_RN_PLAN, { label: "FDA label — lithium (DailyMed)" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "mental-health", contentTopic: "lithium", specialty: "mental-health" },
+  },
+  { id: "mr-hyperthyroid-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which findings are consistent with hyperthyroidism (Graves disease)? Select all that apply.",
+    options: [
+      { id: "a", label: "Heat intolerance and increased sweating.", isCorrect: true, feedback: "Hypermetabolism." },
+      { id: "b", label: "Unintentional weight loss with increased appetite.", isCorrect: true, feedback: "Hypermetabolic state." },
+      { id: "c", label: "Tachycardia and palpitations.", isCorrect: true, feedback: "Beta-adrenergic effect." },
+      { id: "d", label: "Cold intolerance and weight gain.", isCorrect: false, feedback: "Hypothyroidism, not hyperthyroidism." },
+      { id: "e", label: "Exophthalmos and goiter (Graves).", isCorrect: true, feedback: "TSH-receptor antibody effect." },
+      { id: "f", label: "Bradycardia and constipation.", isCorrect: false, feedback: "Hypothyroidism." },
+    ],
+    rationale: { body: "Hyperthyroidism: heat intolerance, weight loss with hunger, tachycardia/palpitations, tremor, anxiety, insomnia, frequent BMs, exophthalmos and pretibial myxedema in Graves. Lab: low TSH, high free T4/T3. Treatment: methimazole or PTU, beta-blocker for symptoms, radioactive iodine, thyroidectomy.", sources: [NCSBN_RN_PLAN, { label: "American Thyroid Association Hyperthyroidism Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "endocrine", contentTopic: "hyperthyroidism", specialty: "med-surg" },
+  },
+  { id: "mr-warfarin-teach-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "A nurse is teaching a client newly prescribed warfarin. Which statements indicate the client understands the teaching? Select all that apply.",
+    options: [
+      { id: "a", label: '"I will keep my green-leafy vegetable intake about the same each week."', isCorrect: true, feedback: "Consistent vitamin K stabilizes INR." },
+      { id: "b", label: '"I will use a soft toothbrush and an electric razor."', isCorrect: true, feedback: "Bleeding precautions." },
+      { id: "c", label: '"I will get my INR checked at the schedule given by the clinic."', isCorrect: true, feedback: "Routine monitoring required." },
+      { id: "d", label: '"I will take ibuprofen for any aches."', isCorrect: false, feedback: "NSAIDs increase bleeding; use acetaminophen." },
+      { id: "e", label: '"I will report any black or tarry stools immediately."', isCorrect: true, feedback: "GI bleeding sign." },
+      { id: "f", label: '"I can stop the medication once I feel better."', isCorrect: false, feedback: "Continue per provider; abrupt stopping → clot risk." },
+    ],
+    rationale: { body: "Warfarin teaching: consistent vitamin K diet, bleeding precautions (soft toothbrush, electric razor, no contact sports), routine INR per schedule, report bleeding signs (black stools, hematuria, easy bruising, headache), avoid NSAIDs/aspirin unless prescribed, MedicAlert ID, never stop without provider direction.", sources: [NCSBN_RN_PLAN, { label: "FDA label — warfarin (DailyMed)" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "teaching-learning", cjmmStep: "evaluate-outcomes", bodySystem: "hematologic", contentTopic: "anticoagulants", specialty: "med-surg" },
+  },
+  { id: "mr-preeclampsia-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which findings indicate severe-feature preeclampsia in a client at 34 weeks gestation? Select all that apply.",
+    options: [
+      { id: "a", label: "BP 165/112.", isCorrect: true, feedback: "≥ 160/110 on two readings." },
+      { id: "b", label: "Severe persistent right upper quadrant or epigastric pain.", isCorrect: true, feedback: "Liver capsule stretch — concerning for HELLP." },
+      { id: "c", label: "Visual changes such as scotomata or blurred vision.", isCorrect: true, feedback: "CNS involvement." },
+      { id: "d", label: "Mild ankle swelling at end of day.", isCorrect: false, feedback: "Common in normal pregnancy." },
+      { id: "e", label: "Platelets less than 100,000.", isCorrect: true, feedback: "HELLP component." },
+      { id: "f", label: "Pulse 78 with normal capillary refill.", isCorrect: false, feedback: "Normal finding." },
+    ],
+    rationale: { body: "Severe-feature preeclampsia: BP ≥ 160/110, platelets < 100k, AST/ALT > 2× upper normal, severe RUQ/epigastric pain, new visual changes, severe persistent headache, pulmonary edema, creatinine > 1.1 or doubled. Magnesium sulfate for seizure prophylaxis, antihypertensives, delivery is the only cure.", sources: [NCSBN_RN_PLAN, { label: "ACOG Hypertension in Pregnancy Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "repro", contentTopic: "preeclampsia", specialty: "ob" },
+  },
+  { id: "mr-peds-6mo-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which milestones should a healthy 6-month-old infant typically have achieved? Select all that apply.",
+    options: [
+      { id: "a", label: "Sits with support; some sit briefly without support.", isCorrect: true, feedback: "Typical 6-month motor milestone." },
+      { id: "b", label: "Rolls from back to abdomen.", isCorrect: true, feedback: "Typically achieved by 5–6 months." },
+      { id: "c", label: "Babbles consonant sounds (\"ba\", \"da\").", isCorrect: true, feedback: "Language milestone." },
+      { id: "d", label: "Walks independently.", isCorrect: false, feedback: "Walking is typically 12–15 months." },
+      { id: "e", label: "Doubled birth weight.", isCorrect: true, feedback: "Typically by 5–6 months." },
+      { id: "f", label: "Speaks 3-word sentences.", isCorrect: false, feedback: "More typical of 2 years." },
+    ],
+    rationale: { body: "6-month milestones: sits with support and briefly without, rolls both ways, babbles, doubled birth weight, transfers objects between hands, brings toys to mouth, looks at faces and tracks. Refer if not babbling, no rolling, or persistent inability to control head.", sources: [NCSBN_RN_PLAN, { label: "CDC Developmental Milestones (6 months)" }] },
+    tags: { examTarget: "RN", clientNeed: "health-promotion-and-maintenance", integratedProcess: "nursing-process", cjmmStep: "analyze-cues", bodySystem: "neuro", contentTopic: "growth-development", specialty: "peds" },
+  },
+  { id: "mr-discharge-stroke-001", itemType: "multiple_response", scoringRule: "polytomous_plus_minus",
+    stem: "Which discharge instructions are appropriate for a client recovering from an ischemic stroke with new dysphagia and right-sided weakness? Select all that apply.",
+    options: [
+      { id: "a", label: "Sit upright at 90 degrees during meals and 30 minutes after.", isCorrect: true, feedback: "Aspiration prevention." },
+      { id: "b", label: "Use the left (unaffected) side for eating and dressing techniques.", isCorrect: true, feedback: "Compensatory strategy." },
+      { id: "c", label: "Continue prescribed antiplatelet therapy and report any bleeding.", isCorrect: true, feedback: "Stroke prevention." },
+      { id: "d", label: "Discontinue physical therapy once home.", isCorrect: false, feedback: "Continued PT/OT/SLP improves functional recovery." },
+      { id: "e", label: "Watch for FAST symptoms and call 911 if recurrence.", isCorrect: true, feedback: "Stroke recurrence is high in the first year." },
+      { id: "f", label: "Use only thin liquids without thickener.", isCorrect: false, feedback: "Thickened liquids per SLP for dysphagia." },
+    ],
+    rationale: { body: "Post-stroke discharge: aspiration precautions (HOB 90, chin tuck, thickened liquids per SLP), compensatory strategies for hemiparesis, continue antiplatelet/anticoagulant per cause, BP and lipid control, smoking cessation, continued OT/PT/SLP, FAST teaching for recurrence, fall precautions.", sources: [NCSBN_RN_PLAN, { label: "AHA/ASA Stroke Recovery Guidelines" }] },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "basic-care-and-comfort", integratedProcess: "teaching-learning", cjmmStep: "evaluate-outcomes", bodySystem: "neuro", contentTopic: "stroke-discharge", specialty: "med-surg" },
+  },
 ];
 
 export const seedFillInTheBlankItems: FillInTheBlankQuestion[] = [
@@ -2829,6 +2960,166 @@ export const seedFillInTheBlankItems: FillInTheBlankQuestion[] = [
     },
     tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "peds-dose-calc", specialty: "peds" },
   },
+  {
+    id: "fitb-calc-006",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A nurse is to infuse 1,500 mL of D5W over 12 hours using gravity tubing with a drop factor of 15 gtt/mL. At what rate (gtt/min) should the nurse set the infusion? Round to the nearest whole number.",
+    acceptedMin: 31,
+    acceptedMax: 31,
+    units: "gtt/min",
+    decimals: 0,
+    rationale: {
+      body:
+        "(volume mL × drop factor) ÷ (time in min) = gtt/min.\n(1,500 mL × 15 gtt/mL) ÷ (12 × 60 min) = 22,500 ÷ 720 = 31.25 → 31 gtt/min.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Drug Calculations for Nurses" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "iv-calc-gtt", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-007",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A pediatric client weighs 12 kg and is in shock; the provider orders an isotonic fluid bolus of 20 mL/kg. How many milliliters should the nurse infuse?",
+    acceptedMin: 240,
+    acceptedMax: 240,
+    units: "mL",
+    decimals: 0,
+    rationale: {
+      body:
+        "20 mL/kg × 12 kg = 240 mL bolus over ≤ 20 minutes.",
+      sources: [NCSBN_RN_PLAN, { label: "PALS Provider Manual" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "peds-fluid-resuscitation", specialty: "peds" },
+  },
+  {
+    id: "fitb-calc-008",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "An order reads insulin regular 8 units IV bolus. The available insulin is 100 units/mL. How many milliliters should the nurse draw up? Round to the nearest hundredth.",
+    acceptedMin: 0.07,
+    acceptedMax: 0.09,
+    units: "mL",
+    decimals: 2,
+    rationale: {
+      body:
+        "8 units × (1 mL / 100 units) = 0.08 mL.\nDraw in a 1-mL insulin syringe; verify with second nurse for high-alert med.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — regular insulin (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "endocrine", contentTopic: "insulin-conversion", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-009",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A nurse is to infuse magnesium sulfate 4 g over 30 minutes for severe preeclampsia. The bag is mag sulfate 40 g/L (40 mg/mL). What rate (mL/hr) should the pump be set at?",
+    acceptedMin: 200,
+    acceptedMax: 200,
+    units: "mL/hr",
+    decimals: 0,
+    rationale: {
+      body:
+        "4 g = 4,000 mg. 4,000 mg ÷ 40 mg/mL = 100 mL.\nInfused over 30 min → 100 mL × (60 / 30) = 200 mL/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "ACOG Magnesium Sulfate in Pregnancy" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "repro", contentTopic: "magnesium-sulfate", specialty: "ob" },
+  },
+  {
+    id: "fitb-calc-010",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A client weighs 78 kg and is 1.78 m tall. What is the client's BMI? Round to the nearest tenth.",
+    acceptedMin: 24.5,
+    acceptedMax: 24.7,
+    units: "kg/m²",
+    decimals: 1,
+    rationale: {
+      body:
+        "BMI = weight (kg) ÷ height² (m²).\n78 ÷ (1.78 × 1.78) = 78 ÷ 3.1684 ≈ 24.6 kg/m² (normal range).",
+      sources: [NCSBN_RN_PLAN, { label: "CDC BMI Calculation" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "health-promotion-and-maintenance", integratedProcess: "nursing-process", cjmmStep: "analyze-cues", bodySystem: "multisystem", contentTopic: "bmi", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-011",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A continuous heparin drip of 25,000 units in 250 mL D5W is infusing at 14 mL/hr. How many units of heparin per hour is the client receiving?",
+    acceptedMin: 1400,
+    acceptedMax: 1400,
+    units: "units/hr",
+    decimals: 0,
+    rationale: {
+      body:
+        "Concentration: 25,000 units ÷ 250 mL = 100 units/mL.\n14 mL/hr × 100 units/mL = 1,400 units/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — heparin (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "evaluate-outcomes", bodySystem: "hematologic", contentTopic: "heparin-calc", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-012",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A provider orders morphine 0.05 mg/kg IV for a 60 kg client. The available concentration is 4 mg/mL. How many milliliters should the nurse administer? Round to the nearest tenth.",
+    acceptedMin: 0.7,
+    acceptedMax: 0.8,
+    units: "mL",
+    decimals: 2,
+    rationale: {
+      body:
+        "Dose: 0.05 mg/kg × 60 kg = 3 mg.\nVolume: 3 mg ÷ 4 mg/mL = 0.75 mL.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — morphine (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "opioid-calc", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-013",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "An NS bolus of 500 mL is to infuse over 30 minutes via pump. At what rate (mL/hr) should the pump be set?",
+    acceptedMin: 1000,
+    acceptedMax: 1000,
+    units: "mL/hr",
+    decimals: 0,
+    rationale: {
+      body:
+        "500 mL ÷ 0.5 hr = 1,000 mL/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Drug Calculations for Nurses" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "iv-calc", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-014",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A peds client weighs 35 lb. What is the client's weight in kg? Round to the nearest tenth.",
+    acceptedMin: 15.8,
+    acceptedMax: 16.0,
+    units: "kg",
+    decimals: 1,
+    rationale: {
+      body:
+        "1 kg = 2.2 lb.\n35 ÷ 2.2 = 15.9 kg.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Drug Calculations for Nurses" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "analyze-cues", bodySystem: "multisystem", contentTopic: "weight-conversion", specialty: "peds" },
+  },
+  {
+    id: "fitb-calc-015",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem: "A nurse hangs an antibiotic 100 mL to infuse over 45 minutes. At what rate (mL/hr) should the pump be set? Round to the nearest whole number.",
+    acceptedMin: 133,
+    acceptedMax: 134,
+    units: "mL/hr",
+    decimals: 0,
+    rationale: {
+      body:
+        "100 mL × (60 min / 45 min) = 133.3 → 133 mL/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Drug Calculations for Nurses" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "iv-calc", specialty: "med-surg" },
+  },
 ];
 
 export const seedBowTieItems: BowTieQuestion[] = [
@@ -2875,6 +3166,219 @@ export const seedBowTieItems: BowTieQuestion[] = [
       ],
     },
     tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "sepsis", specialty: "med-surg" },
+  },
+
+  {
+    id: "bt-dka-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A 22-year-old client with type 1 diabetes is admitted to the ED with deep rapid breathing, fruity breath, severe abdominal pain, glucose 580 mg/dL, pH 7.21, HCO3 12, anion gap 22, K 5.6.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Begin 0.9% normal saline IV bolus.", isCorrect: true, feedback: "Aggressive isotonic fluid first to expand volume." },
+        { id: "a2", label: "Start a regular insulin IV infusion at 0.1 units/kg/hr.", isCorrect: true, feedback: "Closes the anion gap; standard DKA protocol." },
+        { id: "a3", label: "Administer 50% dextrose IV push immediately.", isCorrect: false, feedback: "Glucose is 580 — dextrose worsens hyperglycemia until level drops to ~250." },
+        { id: "a4", label: "Give insulin glargine subcutaneously.", isCorrect: false, feedback: "Long-acting basal insulin is not used to break DKA." },
+        { id: "a5", label: "Administer a beta-blocker for tachycardia.", isCorrect: false, feedback: "Tachycardia is compensatory; treating it worsens hemodynamics." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Diabetic ketoacidosis (DKA).", isCorrect: true, feedback: "Hyperglycemia + anion gap acidosis + ketosis = DKA." },
+        { id: "c2", label: "Hyperosmolar hyperglycemic state (HHS).", isCorrect: false, feedback: "HHS has minimal ketones, no significant acidosis." },
+        { id: "c3", label: "Lactic acidosis from sepsis.", isCorrect: false, feedback: "Different pattern, no fruity breath, no marked hyperglycemia." },
+        { id: "c4", label: "Salicylate poisoning.", isCorrect: false, feedback: "Different presentation; mixed acid-base, history of intake." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Serum potassium every 1–2 hours.", isCorrect: true, feedback: "Insulin shifts K into cells; replace before hypokalemia." },
+        { id: "m2", label: "Anion gap and venous blood gas trends.", isCorrect: true, feedback: "Track gap closure; signals resolution." },
+        { id: "m3", label: "Serum lipase only.", isCorrect: false, feedback: "Pancreatitis can mimic but isn't the priority monitor." },
+        { id: "m4", label: "Daily TSH.", isCorrect: false, feedback: "Not relevant in acute DKA." },
+        { id: "m5", label: "Hourly thyroid panel.", isCorrect: false, feedback: "Not relevant." },
+      ],
+    },
+    rationale: {
+      body:
+        "DKA presents with hyperglycemia, anion-gap metabolic acidosis, and ketosis. Treatment order: IV fluids first, then insulin drip, watch potassium (insulin drives K intracellular), add D5 to fluids when glucose ≤ 250 to prevent hypoglycemia while still closing the gap. Bicarb only for pH < 7.0.",
+      sources: [
+        NCSBN_RN_PLAN,
+        { label: "ADA Standards of Care — DKA Management" },
+      ],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "endocrine", contentTopic: "dka", specialty: "med-surg" },
+  },
+
+  {
+    id: "bt-pph-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A nurse is caring for a client 30 minutes after a vaginal delivery. Fundus is boggy and displaced to the right of midline. Perineal pad has saturated through. BP 102/62, HR 110, lochia rubra heavy with clots.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Massage the fundus until firm.", isCorrect: true, feedback: "First-line for uterine atony PPH." },
+        { id: "a2", label: "Assist the client to empty her bladder.", isCorrect: true, feedback: "Bladder distention prevents uterine contraction." },
+        { id: "a3", label: "Place the client in Trendelenburg with the head down 45 degrees.", isCorrect: false, feedback: "Not first-line; can worsen breathing without addressing cause." },
+        { id: "a4", label: "Administer methylergonovine 0.2 mg IM without checking BP.", isCorrect: false, feedback: "Methylergonovine contraindicated in hypertension; check BP first." },
+        { id: "a5", label: "Withhold all fluids until provider arrives.", isCorrect: false, feedback: "IV fluids are needed for hemodynamic support." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Postpartum hemorrhage from uterine atony.", isCorrect: true, feedback: "Boggy uterus + bladder distension + heavy bleeding = atony." },
+        { id: "c2", label: "Cervical laceration.", isCorrect: false, feedback: "Lacerations cause bleeding with a firm uterus." },
+        { id: "c3", label: "Retained placental fragments.", isCorrect: false, feedback: "Possible but less likely with bladder distension visible." },
+        { id: "c4", label: "Disseminated intravascular coagulation.", isCorrect: false, feedback: "DIC presents with bleeding from multiple sites and lab abnormalities." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Fundal tone, height, and position every 15 minutes.", isCorrect: true, feedback: "Track effectiveness of intervention." },
+        { id: "m2", label: "Vital signs and pad counts.", isCorrect: true, feedback: "Hemodynamic instability and bleeding amount." },
+        { id: "m3", label: "Newborn temperature only.", isCorrect: false, feedback: "Not the primary concern in maternal hemorrhage." },
+        { id: "m4", label: "Maternal blood glucose hourly.", isCorrect: false, feedback: "Not the priority monitor." },
+        { id: "m5", label: "Daily weights only.", isCorrect: false, feedback: "Acute setting needs hourly assessments." },
+      ],
+    },
+    rationale: {
+      body:
+        "Postpartum hemorrhage 4 Ts: Tone (atony — most common), Trauma (laceration), Tissue (retained placenta), Thrombin (coagulopathy). For atony, first-line is fundal massage and bladder emptying. If unresolved → oxytocin, then methylergonovine (avoid in HTN), carboprost (avoid in asthma), misoprostol, then surgical management.",
+      sources: [NCSBN_RN_PLAN, { label: "ACOG Postpartum Hemorrhage Practice Bulletin" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "repro", contentTopic: "postpartum-hemorrhage", specialty: "ob" },
+  },
+
+  {
+    id: "bt-stroke-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A 68-year-old client arrives at the ED with sudden right-sided weakness, slurred speech, and facial droop that began 90 minutes ago. BP 168/92, glucose 132, NIH stroke scale 12. Non-contrast CT shows no hemorrhage.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Establish two large-bore IVs and prepare IV alteplase (tPA) per protocol.", isCorrect: true, feedback: "Within 4.5-hour window, no hemorrhage — eligible for tPA." },
+        { id: "a2", label: "Maintain BP under 185/110 with IV labetalol if needed.", isCorrect: true, feedback: "BP must be < 185/110 before tPA, < 180/105 during/after." },
+        { id: "a3", label: "Administer aspirin 325 mg PO immediately.", isCorrect: false, feedback: "Aspirin within 24 hours of tPA increases bleeding; hold." },
+        { id: "a4", label: "Begin warfarin loading dose.", isCorrect: false, feedback: "Warfarin is not used acutely." },
+        { id: "a5", label: "Place client in Trendelenburg position.", isCorrect: false, feedback: "Increases ICP; head of bed should be elevated." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Acute ischemic stroke.", isCorrect: true, feedback: "Sudden focal deficits, no hemorrhage on CT, within window." },
+        { id: "c2", label: "Hemorrhagic stroke.", isCorrect: false, feedback: "CT showed no hemorrhage." },
+        { id: "c3", label: "Migraine with aura.", isCorrect: false, feedback: "Sudden severe deficits with NIHSS 12 are stroke until proven otherwise." },
+        { id: "c4", label: "Hypoglycemia.", isCorrect: false, feedback: "Glucose 132 rules this out." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Neurological assessment every 15 minutes during tPA infusion.", isCorrect: true, feedback: "Detect deterioration suggesting hemorrhage." },
+        { id: "m2", label: "BP every 15 minutes; maintain under 180/105.", isCorrect: true, feedback: "Tight BP control during and 24h after tPA." },
+        { id: "m3", label: "Capillary glucose every 4 hours only.", isCorrect: false, feedback: "Not the priority monitor parameter." },
+        { id: "m4", label: "Bowel sounds every shift.", isCorrect: false, feedback: "Not primary in acute stroke." },
+        { id: "m5", label: "Skin turgor only.", isCorrect: false, feedback: "Not relevant." },
+      ],
+    },
+    rationale: {
+      body:
+        "Acute ischemic stroke within 4.5 h of onset, BP < 185/110, no hemorrhage on CT, and no other contraindications → IV tPA (alteplase). During and 24 h post: maintain BP < 180/105, neuro checks q15 min, no antiplatelets/anticoagulants for 24 h, no NG/Foley/arterial sticks for 24 h.",
+      sources: [NCSBN_RN_PLAN, { label: "AHA/ASA Acute Ischemic Stroke Guidelines" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "neuro", contentTopic: "stroke", specialty: "med-surg" },
+  },
+
+  {
+    id: "bt-anaphylaxis-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A 32-year-old client with a known peanut allergy develops sudden urticaria, dyspnea, audible wheezing, lip swelling, and BP of 84/52 within 10 minutes of unknowingly eating a sauce containing peanut.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Administer epinephrine 0.3 mg IM in the lateral thigh.", isCorrect: true, feedback: "First-line for anaphylaxis; IM thigh, no delay." },
+        { id: "a2", label: "Place the client supine with legs elevated and give high-flow oxygen.", isCorrect: true, feedback: "Maximizes venous return and oxygenation in shock." },
+        { id: "a3", label: "Give oral diphenhydramine and recheck in 30 minutes.", isCorrect: false, feedback: "Antihistamines are adjunct only; not first-line." },
+        { id: "a4", label: "Administer IV beta-blocker for tachycardia.", isCorrect: false, feedback: "Tachycardia is compensatory; beta-blocker would worsen." },
+        { id: "a5", label: "Wait for the IV team before any treatment.", isCorrect: false, feedback: "Epinephrine IM does not require IV access; do not delay." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Anaphylaxis.", isCorrect: true, feedback: "Multi-system IgE reaction to known allergen." },
+        { id: "c2", label: "Vasovagal syncope.", isCorrect: false, feedback: "No urticaria or wheezing; bradycardia not tachycardia." },
+        { id: "c3", label: "Asthma exacerbation alone.", isCorrect: false, feedback: "Asthma alone does not cause urticaria + hypotension." },
+        { id: "c4", label: "Panic attack.", isCorrect: false, feedback: "No allergic skin or airway findings." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Airway patency and respiratory effort.", isCorrect: true, feedback: "Anaphylaxis can recur (biphasic) within hours." },
+        { id: "m2", label: "Blood pressure and heart rate continuously.", isCorrect: true, feedback: "Track vasodilatory shock response." },
+        { id: "m3", label: "Hourly fingerstick glucose only.", isCorrect: false, feedback: "Not the immediate priority." },
+        { id: "m4", label: "Bowel function only.", isCorrect: false, feedback: "Not relevant acutely." },
+        { id: "m5", label: "Daily weights only.", isCorrect: false, feedback: "Not relevant acutely." },
+      ],
+    },
+    rationale: {
+      body:
+        "Anaphylaxis treatment order: epinephrine 0.3–0.5 mg IM lateral thigh first (no delay; no IV needed), supine with legs elevated, high-flow oxygen, IV access, IV crystalloid for hypotension, antihistamines (H1 + H2), corticosteroid, nebulized albuterol for bronchospasm. Repeat epi q5–15 min if needed. Observe for biphasic reaction.",
+      sources: [NCSBN_RN_PLAN, { label: "WAO Anaphylaxis Guidelines" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "immune", contentTopic: "anaphylaxis", specialty: "med-surg" },
+  },
+
+  {
+    id: "bt-hf-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A 76-year-old client with chronic heart failure presents with worsening dyspnea, 8 lb weight gain over 5 days, bilateral lower-extremity edema, JVD to the angle of the jaw, crackles in both lung bases, BP 158/92, HR 108, SpO2 88% on room air.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Place client in high Fowler position and give supplemental oxygen.", isCorrect: true, feedback: "Improves oxygenation and reduces preload." },
+        { id: "a2", label: "Administer IV furosemide as ordered.", isCorrect: true, feedback: "Loop diuretic for acute decompensated HF." },
+        { id: "a3", label: "Place the client supine and increase IV fluids.", isCorrect: false, feedback: "Worsens pulmonary congestion." },
+        { id: "a4", label: "Administer a beta-blocker bolus right now.", isCorrect: false, feedback: "Avoid initiating/escalating beta-blocker during acute decompensation." },
+        { id: "a5", label: "Encourage rapid ambulation.", isCorrect: false, feedback: "Inappropriate during acute decompensation." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Acute decompensated heart failure.", isCorrect: true, feedback: "Volume overload with biventricular signs." },
+        { id: "c2", label: "Pulmonary embolism.", isCorrect: false, feedback: "PE typically presents with sudden chest pain and low CO2." },
+        { id: "c3", label: "Tension pneumothorax.", isCorrect: false, feedback: "Different findings — tracheal deviation, absent breath sounds." },
+        { id: "c4", label: "Sepsis.", isCorrect: false, feedback: "No fever, no infection source, no lactate." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Daily weights and strict intake/output.", isCorrect: true, feedback: "Tracks fluid response to diuretic." },
+        { id: "m2", label: "Serum potassium and renal function.", isCorrect: true, feedback: "Loop diuretics deplete K; AKI is a risk." },
+        { id: "m3", label: "Hourly thyroid panel.", isCorrect: false, feedback: "Not relevant acutely." },
+        { id: "m4", label: "Daily skin turgor only.", isCorrect: false, feedback: "Not the priority parameter." },
+        { id: "m5", label: "Routine bowel sounds every hour.", isCorrect: false, feedback: "Not priority." },
+      ],
+    },
+    rationale: {
+      body:
+        "Acute decompensated HF: pulmonary congestion (left) + systemic congestion (right). Treat with positioning (high Fowler), oxygen, IV loop diuretic, vasodilator (nitroglycerin) for HTN, possibly NIPPV if respiratory failure. Monitor weight, I&O, K+, BUN/Cr, BNP. Avoid escalating beta-blockers during decompensation.",
+      sources: [NCSBN_RN_PLAN, { label: "AHA/ACC Heart Failure Guidelines" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "cardiac", contentTopic: "heart-failure", specialty: "med-surg" },
   },
 ];
 
