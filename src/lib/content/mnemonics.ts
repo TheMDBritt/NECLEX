@@ -290,21 +290,27 @@ export const mnemonics: Mnemonic[] = [
     sunoStyle: "Female lead, half-rapped half-spoken, clinical and confident delivery, vocals prominent. Slow trap, 85 BPM, A minor. 808 sub-bass, crisp hi-hat rolls, atmospheric pad. Modern hip-hop production.",
     lyrics: [
 `[Hook]
-Sugar to the sky, breath go fruity, Kussmaul deep
-Fluids in first, insulin slow, watch the K don't sleep`,
-`[Verse]
-Type-one come in like the world on fire
-Acidotic blood and the ketones higher
-Anion gap wide open, pH down low
-Hour one we drop normal saline, let it flow
-Then the regular insulin running on the line
-Glucose drop slow, ‘bout a hundred a time
-When the sugar hit two-fifty add the dextrose
-Switch the bag, keep the drip — that's how the protocol go
-Potassium follows insulin into the cell
-Replace before you push it or they bottoming out, hell
-Bicarb only if the pH crash beneath seven
-Otherwise it's fluids, lytes, slow recovery from heaven`,
+Sugar in the sky, fruity breath, Kussmaul deep
+Fluids first, insulin slow, watch the K don't sleep`,
+`[Verse 1]
+Type-one rolls in, body's caught fire
+Acidotic, ketones high, pH lower
+Anion gap wide, glucose climbing higher
+Saline in the line — first responder`,
+`[Verse 2]
+Regular insulin steady on the drip
+Glucose down a hundred — slow and tight, no slip
+Two-fifty on the meter, dextrose in the mix
+Hold the rate, switch the bag — protocol fix`,
+`[Bridge]
+K shifts in with insulin so the levels can fall
+Replace before you push or the heart stalls
+Bicarb only if pH crashes under seven
+Otherwise it's lytes and slow road back from heaven`,
+`[Outro]
+Sugar in the sky, fruity breath, Kussmaul deep
+Fluids first, insulin slow, watch the K don't sleep
+[End]`,
     ],
     clinical:
       "Order matters in DKA: fluids first to expand volume, insulin drip second to close the anion gap, potassium replacement once K trends down, dextrose added when glucose ≤ 250 to keep the drip running. Bicarb only for severe acidosis (pH < 7.0).",
@@ -322,18 +328,22 @@ Otherwise it's fluids, lytes, slow recovery from heaven`,
     sunoStyle: "Female lead, classic 90s boom-bap rap delivery, clear articulation, vocals up front. Boom-bap hip-hop, 92 BPM, C minor. Dusty drums, jazzy upright bass, vinyl crackle, head-nod groove.",
     lyrics: [
 `[Hook]
-R-O-M-E, that's the way I read a gas
-Respiratory opposite, metabolic equal — that's the path`,
-`[Verse 1 — respiratory]
-pH up, CO2 down, that's respiratory alkalosis
-Hyperventilating panic, that's the diagnosis
-pH down, CO2 up, respiratory acidosis
+R-O-M-E — that's how I read a gas
+Respiratory Opposite, Metabolic Equal — that's the math`,
+`[Verse 1]
+pH up, CO2 down — respiratory alkalosis
+Panic breathing fast, that's the diagnosis
+pH down, CO2 up — respiratory acidosis
 COPD, the airway tight, that's the prognosis`,
-`[Verse 2 — metabolic]
-pH up, bicarb up, metabolic alkalosis
-Vomit, NG suction — give the volume back, the dose is
-pH down, bicarb down, metabolic acidosis
-DKA, sepsis, kidney shutting up shop`,
+`[Verse 2]
+pH up, bicarb up — metabolic alkalosis
+Vomit, NG suction, give the volume back, the dose is
+pH down, bicarb down — metabolic acidosis
+DKA, sepsis, kidneys shutting shop`,
+`[Outro]
+R-O-M-E — that's how I read a gas
+Respiratory Opposite, Metabolic Equal — that's the math
+[End]`,
     ],
     clinical:
       "ROME = Respiratory Opposite, Metabolic Equal. Step one — is pH up or down? Step two — does CO2 move opposite (respiratory) or HCO3 move with pH (metabolic)? Step three — look for compensation.",
@@ -352,16 +362,21 @@ DKA, sepsis, kidney shutting up shop`,
     lyrics: [
 `[Hook]
 Hour one, hour one — get the bundle done
-Lactate, cultures, antibiotics, fluids, every one`,
-`[Verse]
-Lactate first to see how bad the perfusion gone
-Cultures BEFORE antibiotics, never the wrong way 'round
-Broad spectrum hit them fast inside the first hour
-Thirty mils per kilo crystalloid bring the BP power
-MAP under sixty-five start a pressor on the line
-Norepi first, vaso second when the first one fall behind
-Reassess the lactate, reassess the perfusion
-Septic shock kill quick if you sleep on the conclusion`,
+Lactate, cultures, antibiotics, fluids — every one`,
+`[Verse 1]
+Lactate first, see how far perfusion's gone
+Cultures BEFORE antibiotics, never get it wrong
+Broad spectrum hit fast inside the first hour
+Thirty mils per kilo, crystalloid the BP power`,
+`[Verse 2]
+MAP under sixty-five — start a pressor on the line
+Norepi up, vaso back when the first one falls behind
+Trend the lactate, trend the perfusion
+Septic shock kills quick — that's the conclusion`,
+`[Outro]
+Hour one, hour one — get the bundle done
+Lactate, cultures, antibiotics, fluids — every one
+[End]`,
     ],
     clinical:
       "Surviving Sepsis Campaign hour-1: measure lactate, blood cultures BEFORE antibiotics, broad-spectrum antibiotics, 30 mL/kg crystalloid for hypotension or lactate ≥ 4, vasopressors during/after fluids if MAP < 65. Norepinephrine is the first-line pressor.",
@@ -378,19 +393,23 @@ Septic shock kill quick if you sleep on the conclusion`,
     beatStyle: "neo-soul-70",
     sunoStyle: "Smooth female lead, sung neo-soul vocals, contemplative and warm delivery, vocals up front. Neo-soul R&B, 70 BPM, F major. Rhodes electric piano, soft brushed drums, warm upright bass.",
     lyrics: [
-`[Verse — Cushing]
-Too much cortisol, the body keep the salt and weight
-Moon face rising slow, the striae stretch and fade
-Sugar running high, the skin so thin it tears
-Mood swings, BP up — that's Cushing in the air`,
+`[Verse 1 — Cushing]
+Too much cortisol, body keeps the salt and weight
+Moon face rising slow, striae stretch and fade
+Sugar running high, skin so thin it tears
+Mood up, BP up — Cushing in the air`,
 `[Hook]
 Cushing's got it ALL — sodium, sugar, BP, fat
-Addison gave it BACK — sodium, sugar, BP flat`,
-`[Verse — Addison]
-Cortisol gone low, the body lose the salt and tone
-Bronze pigmentation deep, electrolytes alone
-Hyperkalemia rise, glucose drop down low
-Crisis: steroid push, IV fluids let it flow`,
+Addison gives it BACK — sodium, sugar, BP flat`,
+`[Verse 2 — Addison]
+Cortisol low, body loses salt and tone
+Bronze on the skin, electrolytes alone
+Hyperkalemia up, glucose drifting down
+Crisis: hydrocortisone, fluids, hold her down`,
+`[Outro]
+Cushing's got it ALL — sodium, sugar, BP, fat
+Addison gives it BACK — sodium, sugar, BP flat
+[End]`,
     ],
     clinical:
       "Cushing = excess cortisol → high Na, high glucose, high BP, weight gain, moon face, striae, thin skin. Addison = deficient cortisol → low Na, low glucose, low BP, weight loss, hyperpigmentation, hyperkalemia. Addisonian crisis is a medical emergency — IV hydrocortisone, fluids, glucose.",
@@ -407,21 +426,23 @@ Crisis: steroid push, IV fluids let it flow`,
     beatStyle: "gospel-piano",
     sunoStyle: "Female lead with female choir response, gospel call-and-response, uplifting and worshipful delivery. Contemporary gospel, 80 BPM, C major (C-F-G-C). Acoustic piano, hand claps, soft tambourine, warm Hammond organ pad.",
     lyrics: [
-`[Caller] Right patient!
-[Choir] Two identifiers, every single time
-[Caller] Right drug!
-[Choir] Triple-check the label, never break the line
-[Caller] Right dose!
-[Choir] Math it twice with weight if peds is in the bed
-[Caller] Right route!
-[Choir] Don't push it IV if it's PO instead
-[Caller] Right time!
-[Choir] Within thirty minutes, document the read`,
-`[Bridge — extension]
-Right reason — what the medicine is FOR
-Right response — reassess after the dose
-Right documentation — chart it, close the loop
-Right to refuse — honor the patient, every time`,
+`[Hook]
+Right patient — two identifiers, every single time
+Right drug, right dose, right route, right time`,
+`[Verse 1]
+Two identifiers — name and date together
+Triple-check the label so the dose is never wrong
+Weight-based math when the patient is small
+Don't push it IV if it's PO at all`,
+`[Verse 2]
+Inside thirty minutes, then document the read
+Right reason — say what the medicine is for
+Right response — reassess once the dose is done
+Right to refuse — honor every single one`,
+`[Outro]
+Right patient — two identifiers, every single time
+Right drug, right dose, right route, right time
+[End]`,
     ],
     clinical:
       "The five core rights are patient, drug, dose, route, time. The expanded list adds reason, documentation, response, and right to refuse — together the 'nine rights' some institutions teach.",
@@ -438,23 +459,27 @@ Right to refuse — honor the patient, every time`,
     beatStyle: "neo-soul-80",
     sunoStyle: "Warm sung female lead, soulful neo-soul vocals, mid-tempo groove. Neo-soul R&B, 80 BPM, G minor. Rhodes electric piano, soft drums, walking bass, light tambourine.",
     lyrics: [
-`[Verse — Left]
-Left side back up, push it to the lungs
-Crackle in the bases, sit them up, oxygen come
-Pink frothy sputum tell you edema in the air
-S-3 gallop knocking soft, a sound you can't compare
-Orthopnea climbing, three pillows for the night
-Furosemide IV slow, get the volume off the right`,
+`[Verse 1 — Left]
+Left side backs up, blood goes to the lungs
+Crackles in the bases, sit them up for the breath
+Pink frothy sputum, edema in the air
+S-three gallop knocking — orthopnea rising
+Three pillows at night, oxygen on the rise
+Furosemide IV slow, dropping volume on the side`,
 `[Bridge]
-Backwards, backwards — the blood don't flow forward
-Backwards, backwards — the body know what's coming`,
-`[Verse — Right]
-Right side back up, push it to the body
-JVD jugulars rising — tell you something's not coppy
-Liver tender, ascites, peripheral edema slow
-Weight up two pounds in a day, the fluid finding home
-Daily weights at dawn, low-sodium dish
-Spironolactone working soft — that aldosterone wish`,
+Backward, backward — the blood won't move forward
+Backward, backward — the body knows what's coming`,
+`[Verse 2 — Right]
+Right side backs up, blood pools in the body
+JVD jugulars rising, something is not steady
+Liver tender, ascites, edema in the legs
+Weight up two pounds overnight, the fluid making nests
+Daily weights at dawn, low-sodium plate
+Spironolactone soft, aldosterone wait`,
+`[Outro]
+Left to lungs, right to the rest of the body
+Side it starts on tells the story
+[End]`,
     ],
     clinical:
       "Left = Lungs (crackles, dyspnea, orthopnea, pink frothy sputum, S3). Right = Rest of body (JVD, peripheral edema, hepatomegaly, ascites, weight gain). Most chronic HF eventually becomes biventricular but the starting side tells the story.",
