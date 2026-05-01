@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { seedFromString, shuffleWithSeed } from "../shuffle";
+import { seedMultipleChoiceItems, seedMultipleResponseItems } from "../content/seed-items";
 
 describe("shuffleWithSeed", () => {
   const items = ["a", "b", "c", "d", "e"];
@@ -45,6 +46,76 @@ describe("shuffleWithSeed", () => {
         expect(c).toBeLessThan(1200);
       }
     }
+  });
+});
+
+/**
+ * The "no letter alignment" guarantee — for any single-best-answer item,
+ * the correct answer must NOT always land at the same letter (A/B/C/D)
+ * across sessions. We simulate sessions per item and assert each position
+ * is reached often enough.
+ *
+ * SATA items are excluded because they have multiple correct options,
+ * so "first correct position" is naturally non-uniform — that does not
+ * indicate a shuffle defect.
+ */
+describe("answer-position fairness across sessions (single-best-answer items)", () => {
+  it.each(seedMultipleChoiceItems)(
+    "$id — correct answer position varies across sessions",
+    (item) => {
+      const positionCounts = new Array(item.options.length).fill(0);
+      const trials = 400;
+
+      for (let i = 0; i < trials; i++) {
+        const seed = `session-${i}:${item.id}`;
+        const shuffled = shuffleWithSeed(item.options, seed);
+        const correctIdx = shuffled.findIndex((o) => o.isCorrect);
+        positionCounts[correctIdx] = (positionCounts[correctIdx] ?? 0) + 1;
+      }
+
+      const expected = trials / item.options.length;
+      const tolerance = expected * 0.4; // ±40% of expected — guards against pinning
+      for (const count of positionCounts) {
+        expect(count).toBeGreaterThan(expected - tolerance);
+        expect(count).toBeLessThan(expected + tolerance);
+      }
+    },
+  );
+
+  it("each correct option in a SATA item visits every position over many sessions", () => {
+    // For SATA, every correct option independently should land in every
+    // position at least once in 400 trials.
+    const item = seedMultipleResponseItems[0]!;
+    const reachedByOptionId = new Map<string, Set<number>>();
+    for (const opt of item.options) {
+      if (opt.isCorrect) reachedByOptionId.set(opt.id, new Set());
+    }
+    for (let i = 0; i < 400; i++) {
+      const shuffled = shuffleWithSeed(item.options, `session-${i}:${item.id}`);
+      shuffled.forEach((opt, pos) => {
+        if (opt.isCorrect) reachedByOptionId.get(opt.id)!.add(pos);
+      });
+    }
+    for (const [, positions] of reachedByOptionId) {
+      expect(positions.size).toBe(item.options.length);
+    }
+  });
+
+  it("the same session-id reproduces the same shuffle (replayable on review)", () => {
+    const item = seedMultipleChoiceItems[0]!;
+    const seed = "session-2026-05-01-abc:q-001";
+    const a = shuffleWithSeed(item.options, seed).map((o) => o.id);
+    const b = shuffleWithSeed(item.options, seed).map((o) => o.id);
+    expect(a).toEqual(b);
+  });
+
+  it("different session-ids produce different orderings", () => {
+    const item = seedMultipleChoiceItems[0]!;
+    const a = shuffleWithSeed(item.options, "session-A:q").map((o) => o.id);
+    const b = shuffleWithSeed(item.options, "session-B:q").map((o) => o.id);
+    const c = shuffleWithSeed(item.options, "session-C:q").map((o) => o.id);
+    const allEqual = a.join() === b.join() && b.join() === c.join();
+    expect(allEqual).toBe(false);
   });
 });
 

@@ -5,7 +5,6 @@ import { Wordmark } from "@/components/marks/wordmark";
 const links = [
   { href: "/study", label: "Study" },
   { href: "/reference", label: "Reference" },
-  { href: "/progress", label: "Progress" },
 ] as const;
 
 export function NavBar() {

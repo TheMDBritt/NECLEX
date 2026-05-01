@@ -14,25 +14,17 @@ const today = new Date().toLocaleDateString("en-US", {
 const queues = [
   {
     href: "/study",
-    title: "Today's mix",
-    pull: "25 questions, hand-picked.",
-    body: "Yesterday's misses, plus fresh items in the topics that need another pass.",
+    title: "Practice",
+    pull: "Questions tuned to the 2026 plan.",
+    body: "Open a fresh set — single-best-answer and select-all items, all source-cited, all shuffled. No timer unless you ask.",
     accent: "lavender",
-    cta: "Begin",
-  },
-  {
-    href: "/study?mode=weak",
-    title: "Weak areas",
-    pull: "Pharm + patho, gentle reps.",
-    body: "Spaced repetition tuned to where things last slipped — never punishing, just attentive.",
-    accent: "sage",
-    cta: "Drill",
+    cta: "Begin a set",
   },
   {
     href: "/reference",
-    title: "Quick reference",
+    title: "Reference",
     pull: "Drugs · labs · mnemonics.",
-    body: "Open the cabinet — full drug cards, lab ranges, and the mnemonic songs that actually stick.",
+    body: "Open the cabinet — drug cards, lab ranges, and the mnemonic songs that actually stick.",
     accent: "clay",
     cta: "Browse",
   },
@@ -83,7 +75,7 @@ export default function HomePage() {
           <h2 id="queues" className="sr-only">
             Study queues
           </h2>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             {queues.map((q) => (
               <Link
                 key={q.title}
@@ -112,26 +104,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section
-          aria-label="At-a-glance"
-          className="mb-12 grid grid-cols-1 gap-5 rounded-2xl border border-ink/10 bg-paper-deep/40 p-7 sm:grid-cols-3 sm:p-8"
-        >
-          {[
-            { label: "Streak", value: "—", note: "Welcome back whenever" },
-            { label: "Questions this week", value: "—", note: "Sets when you start" },
-            { label: "Strongest CJMM step", value: "—", note: "Builds with practice" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
-                {stat.label}
-              </p>
-              <p className="mt-2 font-display text-[2rem] font-light leading-none tracking-[-0.025em] text-ink">
-                {stat.value}
-              </p>
-              <p className="mt-2 font-body text-[13px] leading-[1.5] text-ink-faint">{stat.note}</p>
-            </div>
-          ))}
-        </section>
+        <aside className="mb-12 rounded-2xl border border-ink/10 bg-paper-deep/40 px-7 py-7 sm:px-8">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+            A small note
+          </p>
+          <p className="mt-3 max-w-[58ch] font-display text-[1.0625rem] italic leading-[1.5] text-lavender-600">
+            "There's no rush. Pick up where you left off, or start a fresh set — both are fine."
+          </p>
+        </aside>
       </Container>
     </PageFrame>
   );

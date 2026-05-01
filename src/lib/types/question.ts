@@ -77,3 +77,22 @@ export interface MultipleChoiceQuestion {
   rationale: Rationale;
   tags: QuestionTags;
 }
+
+/**
+ * Multiple Response (SATA) — every option independently selectable.
+ *
+ * Scored polytomous +/-: +1 for each correct option chosen (or correctly
+ * not chosen), -1 for each incorrect choice (or correct option missed).
+ * Floor 0 per item (cannot go negative).
+ */
+export interface MultipleResponseQuestion {
+  id: string;
+  itemType: "multiple_response";
+  scoringRule: "polytomous_plus_minus";
+  stem: string;
+  options: Option[];
+  rationale: Rationale;
+  tags: QuestionTags;
+}
+
+export type Question = MultipleChoiceQuestion | MultipleResponseQuestion;
