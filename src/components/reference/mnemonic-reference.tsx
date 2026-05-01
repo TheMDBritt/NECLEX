@@ -8,6 +8,12 @@ import {
   getCustomBeatUrl,
   setCustomBeatUrl,
 } from "@/lib/audio/custom-beats";
+import {
+  deleteVoiceRecording,
+  getVoiceRecording,
+  isVoiceRecordingSupported,
+  saveVoiceRecording,
+} from "@/lib/audio/voice-store";
 import { cn } from "@/lib/utils";
 
 interface MnemonicReferenceProps {
@@ -61,13 +67,6 @@ export function MnemonicReference({ items }: MnemonicReferenceProps) {
     });
   }, [items, query, topics, kinds]);
 
-  function toggleTopic(t: string) {
-    setTopics((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
-  }
-  function toggleKind(k: MnemonicKind) {
-    setKinds((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
-  }
-
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -88,7 +87,11 @@ export function MnemonicReference({ items }: MnemonicReferenceProps) {
             return (
               <button
                 key={k}
-                onClick={() => toggleKind(k)}
+                onClick={() =>
+                  setKinds((prev) =>
+                    prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k],
+                  )
+                }
                 aria-pressed={active}
                 className={cn(
                   "rounded-full border px-3.5 py-1.5 font-body text-[13px] tracking-[0.005em] transition-colors duration-200",
@@ -109,7 +112,11 @@ export function MnemonicReference({ items }: MnemonicReferenceProps) {
             return (
               <button
                 key={t}
-                onClick={() => toggleTopic(t)}
+                onClick={() =>
+                  setTopics((prev) =>
+                    prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                  )
+                }
                 aria-pressed={active}
                 className={cn(
                   "rounded-full border px-3.5 py-1.5 font-body text-[13px] tracking-[0.005em] transition-colors duration-200",
@@ -213,7 +220,7 @@ function SongCard({ m }: { m: Mnemonic }) {
 
       <p className="mt-3 font-body text-[14px] leading-[1.55] text-ink-soft">{m.body}</p>
 
-      <PlaySongButton mnemonic={m} />
+      <SongPlayer mnemonic={m} />
 
       <div className="mt-5 space-y-4">
         {stanzas.map((stanza, i) => (
@@ -232,53 +239,103 @@ function SongCard({ m }: { m: Mnemonic }) {
 }
 
 /**
- * Plays the song with the lyrics on top.
+ * Full song player.
  *
- * Source priority:
- *   1. A custom MP3 URL the learner has pasted in for this song (saved in
- *      localStorage) — plays via <audio> element.
- *   2. The built-in synth beat (Web Audio API kick/snare/hat/bass) tied to
- *      the song's beatStyle.
+ * Layers:
+ *   1. Backing track — her custom-pasted MP3 URL OR the synth beat
+ *   2. Vocal — her own recorded vocal (if she's recorded one) OR a TTS read
+ *      of the lyrics on top
  *
- * Either way, the lyrics are layered on top via the device's TTS voice.
+ * Records via MediaRecorder + microphone. Recordings persist in IndexedDB
+ * so they survive reload and across sessions on the same device.
  */
-function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
+function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
   const [supported, setSupported] = useState(false);
+  const [recordSupported, setRecordSupported] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [hasRecording, setHasRecording] = useState(false);
   const [customUrl, setCustomUrlState] = useState<string>("");
   const [editingUrl, setEditingUrl] = useState(false);
   const [draftUrl, setDraftUrl] = useState("");
+  const [recordError, setRecordError] = useState<string | null>(null);
 
-  const playerRef = useRef<BeatPlayer | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const beatPlayerRef = useRef<BeatPlayer | null>(null);
+  const beatAudioRef = useRef<HTMLAudioElement | null>(null);
+  const vocalAudioRef = useRef<HTMLAudioElement | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recorderChunksRef = useRef<BlobPart[]>([]);
+  const recorderStreamRef = useRef<MediaStream | null>(null);
+  const recordingPlayerRef = useRef<BeatPlayer | null>(null);
+  const recordingAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const audioOk = BeatPlayer.isSupported();
     const ttsOk = "speechSynthesis" in window;
     setSupported(audioOk || ttsOk);
+    setRecordSupported(isVoiceRecordingSupported());
 
-    // Hydrate any saved custom URL for this song
     const saved = getCustomBeatUrl(mnemonic.id);
     if (saved) {
       setCustomUrlState(saved);
       setDraftUrl(saved);
     }
 
+    getVoiceRecording(mnemonic.id).then((blob) => setHasRecording(!!blob));
+
     return () => {
-      // Stop everything if the card unmounts
-      if (playerRef.current) playerRef.current.stop();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+      stopAll();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mnemonic.id]);
+
+  function stopAll() {
+    if (beatPlayerRef.current) {
+      beatPlayerRef.current.stop();
+      beatPlayerRef.current = null;
+    }
+    if (beatAudioRef.current) {
+      beatAudioRef.current.pause();
+      beatAudioRef.current.currentTime = 0;
+      beatAudioRef.current = null;
+    }
+    if (vocalAudioRef.current) {
+      vocalAudioRef.current.pause();
+      try {
+        URL.revokeObjectURL(vocalAudioRef.current.src);
+      } catch {
+        /* ignore */
+      }
+      vocalAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    utterRef.current = null;
+    setPlaying(false);
+  }
+
+  function stopRecording() {
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      recorderRef.current.stop();
+    }
+    if (recordingPlayerRef.current) {
+      recordingPlayerRef.current.stop();
+      recordingPlayerRef.current = null;
+    }
+    if (recordingAudioRef.current) {
+      recordingAudioRef.current.pause();
+      recordingAudioRef.current.currentTime = 0;
+      recordingAudioRef.current = null;
+    }
+    if (recorderStreamRef.current) {
+      recorderStreamRef.current.getTracks().forEach((t) => t.stop());
+      recorderStreamRef.current = null;
+    }
+    setRecording(false);
+  }
 
   function buildLyricsText(): string {
     const parts: string[] = [mnemonic.title];
@@ -286,34 +343,50 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
     return parts.join(". ");
   }
 
-  async function play() {
-    if (!supported || playing) return;
-    setPlaying(true);
-
-    // Backing track — prefer the custom MP3 URL, fall back to the synth
+  async function startBeat(): Promise<void> {
     if (customUrl) {
       try {
         const audio = new Audio(customUrl);
         audio.loop = true;
         audio.volume = 0.65;
         audio.crossOrigin = "anonymous";
-        audioRef.current = audio;
+        beatAudioRef.current = audio;
         await audio.play();
+        return;
       } catch {
-        // If the custom URL fails (CORS, 404, etc.), fall back to the synth
-        if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
-          const player = new BeatPlayer();
-          playerRef.current = player;
-          await player.start(mnemonic.beatStyle, 0.55);
-        }
+        // fall through to synth
       }
-    } else if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
+    }
+    if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
       const player = new BeatPlayer();
-      playerRef.current = player;
+      beatPlayerRef.current = player;
       await player.start(mnemonic.beatStyle, 0.55);
     }
+  }
 
-    // TTS lyrics layered on top
+  async function play() {
+    if (!supported || playing) return;
+    setPlaying(true);
+
+    await startBeat();
+
+    const recordedBlob = await getVoiceRecording(mnemonic.id);
+    if (recordedBlob) {
+      const url = URL.createObjectURL(recordedBlob);
+      const audio = new Audio(url);
+      audio.volume = 1.0;
+      audio.onended = () => stopAll();
+      audio.onerror = () => stopAll();
+      vocalAudioRef.current = audio;
+      try {
+        await audio.play();
+      } catch {
+        stopAll();
+      }
+      return;
+    }
+
+    // No recording yet → fall back to TTS reading
     if ("speechSynthesis" in window) {
       const synth = window.speechSynthesis;
       const utter = new SpeechSynthesisUtterance(buildLyricsText());
@@ -326,28 +399,88 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
         voices.find((v) => v.lang.startsWith("en") && v.localService) ??
         voices.find((v) => v.lang.startsWith("en"));
       if (enVoice) utter.voice = enVoice;
-      utter.onend = () => stop();
-      utter.onerror = () => stop();
+      utter.onend = () => stopAll();
+      utter.onerror = () => stopAll();
       utterRef.current = utter;
       synth.speak(utter);
     }
   }
 
   function stop() {
-    if (playerRef.current) {
-      playerRef.current.stop();
-      playerRef.current = null;
+    stopAll();
+  }
+
+  async function startRecording() {
+    if (!recordSupported || recording) return;
+    setRecordError(null);
+
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      setRecordError(
+        err instanceof Error && err.name === "NotAllowedError"
+          ? "Microphone access denied. Allow microphone permissions for this site, then try again."
+          : "Could not access microphone.",
+      );
+      return;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
+    recorderStreamRef.current = stream;
+
+    // Start the beat playing through the device speakers so she can rap to it.
+    // (Browser security prevents us from mixing the beat directly into the
+    // recording — the recording is voice only, beat plays separately on
+    // playback. That's the privacy-friendly browser default.)
+    if (mnemonic.beatStyle && BeatPlayer.isSupported() && !customUrl) {
+      const player = new BeatPlayer();
+      recordingPlayerRef.current = player;
+      await player.start(mnemonic.beatStyle, 0.55);
+    } else if (customUrl) {
+      try {
+        const audio = new Audio(customUrl);
+        audio.loop = true;
+        audio.volume = 0.65;
+        audio.crossOrigin = "anonymous";
+        recordingAudioRef.current = audio;
+        await audio.play();
+      } catch {
+        /* still record voice without audible beat */
+      }
     }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    utterRef.current = null;
-    setPlaying(false);
+
+    const mimeCandidates = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/ogg;codecs=opus",
+    ];
+    const mimeType = mimeCandidates.find((m) =>
+      window.MediaRecorder.isTypeSupported(m),
+    );
+    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    recorderRef.current = recorder;
+    recorderChunksRef.current = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) recorderChunksRef.current.push(e.data);
+    };
+    recorder.onstop = async () => {
+      const blob = new Blob(recorderChunksRef.current, {
+        type: mimeType ?? "audio/webm",
+      });
+      try {
+        await saveVoiceRecording(mnemonic.id, blob);
+        setHasRecording(true);
+      } catch {
+        setRecordError("Couldn't save the recording on this device.");
+      }
+    };
+    recorder.start();
+    setRecording(true);
+  }
+
+  async function deleteRecording() {
+    await deleteVoiceRecording(mnemonic.id);
+    setHasRecording(false);
   }
 
   function saveDraft() {
@@ -358,7 +491,7 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
     setEditingUrl(false);
   }
 
-  function clear() {
+  function clearUrl() {
     clearCustomBeatUrl(mnemonic.id);
     setCustomUrlState("");
     setDraftUrl("");
@@ -391,14 +524,63 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
           {playing ? "Stop" : "Play song"}
         </button>
 
+        {recordSupported ? (
+          <button
+            onClick={() => (recording ? stopRecording() : startRecording())}
+            type="button"
+            className={cn(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
+              recording
+                ? "border-clay-600 bg-clay-600 text-paper"
+                : "border-ink/20 bg-paper text-ink-soft hover:border-ink/40 hover:text-ink",
+            )}
+            aria-pressed={recording}
+          >
+            <span aria-hidden>{recording ? "■" : "●"}</span>
+            {recording ? "Stop recording" : hasRecording ? "Re-record vocals" : "Record vocals"}
+          </button>
+        ) : null}
+
+        {hasRecording && !recording ? (
+          <button
+            onClick={deleteRecording}
+            type="button"
+            className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-faint hover:text-ink"
+          >
+            Delete recording
+          </button>
+        ) : null}
+
         <button
           onClick={() => setEditingUrl((v) => !v)}
           type="button"
           className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-faint hover:text-ink"
         >
-          {customUrl ? "Change beat" : "Add real beat"}
+          {customUrl ? "Change beat" : "Use real beat URL"}
         </button>
       </div>
+
+      {hasRecording ? (
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-sage-800">
+          ▸ Vocal recorded — Play song uses your voice over the beat
+        </p>
+      ) : (
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+          No recording yet — Play uses TTS over the beat. Tap Record vocals to lay your own.
+        </p>
+      )}
+
+      {recording ? (
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-clay-800">
+          ● Recording — rap or sing the lyrics. Tap Stop when done.
+        </p>
+      ) : null}
+
+      {recordError ? (
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-clay-800">
+          {recordError}
+        </p>
+      ) : null}
 
       {customUrl && !editingUrl ? (
         <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
@@ -409,8 +591,7 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
       {editingUrl ? (
         <div className="space-y-2 rounded-lg border border-ink/10 bg-paper p-4">
           <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
-            Paste a free MP3 URL — Pixabay, SoundCloud download, anywhere.
-            The track loops under the lyrics. Saved on this device only.
+            Paste any free MP3 URL — the track loops under the lyrics. Saved on this device only.
           </p>
           <input
             type="url"
@@ -440,7 +621,7 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
             {customUrl ? (
               <button
                 type="button"
-                onClick={clear}
+                onClick={clearUrl}
                 className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.22em] text-clay-600 hover:text-clay-800"
               >
                 Use synth beat
@@ -453,9 +634,6 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
   );
 }
 
-/**
- * Read-aloud button for non-song mnemonics — flat TTS read of the lines.
- */
 function ReadAloudButton({ mnemonic }: { mnemonic: Mnemonic }) {
   const [supported, setSupported] = useState(false);
   const [speaking, setSpeaking] = useState(false);

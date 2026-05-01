@@ -5,6 +5,14 @@ export interface StudyFilter {
   specialties: string[]; // empty = any
   bodySystems: string[]; // empty = any
   topics: string[]; // empty = any
+  /**
+   * NCSBN content area: either a Client Need top-level slug
+   * (e.g. "psychosocial-integrity") OR a Physiological Integrity / Safe-
+   * and-effective-care sub-category slug (e.g. "pharmacological-and-
+   * parenteral-therapies"). The filter matches a question if either its
+   * clientNeed OR its subCategory is in the list.
+   */
+  ncsbnAreas: string[];
 }
 
 export const emptyFilter: StudyFilter = {
@@ -12,6 +20,7 @@ export const emptyFilter: StudyFilter = {
   specialties: [],
   bodySystems: [],
   topics: [],
+  ncsbnAreas: [],
 };
 
 const SPECIALTY_LABEL: Record<string, string> = {
@@ -31,9 +40,27 @@ const BODY_SYSTEM_LABEL: Record<string, string> = {
   endocrine: "Endocrine",
   hematologic: "Hematologic",
   immune: "Immune",
+  integumentary: "Integumentary",
+  msk: "MSK",
   repro: "Reproductive",
   "mental-health": "Mental health",
   multisystem: "Multisystem",
+};
+
+const CLIENT_NEED_LABEL: Record<string, string> = {
+  "safe-and-effective-care-environment": "Safe & effective care",
+  "health-promotion-and-maintenance": "Health promotion",
+  "psychosocial-integrity": "Psychosocial",
+  "physiological-integrity": "Physiological integrity",
+};
+
+const SUB_CATEGORY_LABEL: Record<string, string> = {
+  "management-of-care": "Mgmt of care",
+  "safety-and-infection-control": "Safety & infection",
+  "basic-care-and-comfort": "Basic care & comfort",
+  "pharmacological-and-parenteral-therapies": "Pharm & parenteral",
+  "reduction-of-risk-potential": "Reduction of risk",
+  "physiological-adaptation": "Phys adaptation",
 };
 
 const ITEM_TYPE_LABEL: Record<ItemType, string> = {
@@ -60,7 +87,29 @@ export function specialtyLabel(slug: string): string {
 }
 
 export function bodySystemLabel(slug: string): string {
-  return BODY_SYSTEM_LABEL[slug] ?? slug;
+  // Fall back to a Title-Cased version of the slug instead of the raw slug,
+  // so any unknown body system shows up cleanly in the UI.
+  return BODY_SYSTEM_LABEL[slug] ?? toTitleCase(slug);
+}
+
+export function clientNeedLabel(slug: string): string {
+  return CLIENT_NEED_LABEL[slug] ?? toTitleCase(slug);
+}
+
+export function ncsbnCategoryLabel(slug: string): string {
+  // For the picker's NCSBN row, prefer the sub-category label (which maps
+  // to the canonical NCLEX content area), and fall back to the top-level
+  // Client Need for the two categories that have no sub-categories
+  // (Health Promotion, Psychosocial Integrity).
+  return SUB_CATEGORY_LABEL[slug] ?? CLIENT_NEED_LABEL[slug] ?? toTitleCase(slug);
+}
+
+function toTitleCase(slug: string): string {
+  if (!slug) return slug;
+  return slug
+    .split(/[-_\s]+/)
+    .map((part) => (part.length === 0 ? part : part[0]!.toUpperCase() + part.slice(1)))
+    .join(" ");
 }
 
 export function itemTypeLabel(t: ItemType): string {
@@ -81,6 +130,20 @@ export function uniqueBodySystems(items: readonly Question[]): string[] {
 
 export function uniqueItemTypes(items: readonly Question[]): ItemType[] {
   return Array.from(new Set(items.map((q) => q.itemType))).sort();
+}
+
+/**
+ * Distinct NCSBN content areas across the bank. Returns subcategory slugs
+ * when present (Mgmt of care, Pharm, etc.), and the top-level Client Need
+ * slug for items without a subcategory (Health Promo, Psychosocial).
+ */
+export function uniqueNcsbnAreas(items: readonly Question[]): string[] {
+  const set = new Set<string>();
+  for (const q of items) {
+    if (q.tags.subCategory) set.add(q.tags.subCategory);
+    else set.add(q.tags.clientNeed);
+  }
+  return Array.from(set).sort();
 }
 
 export function uniqueTopics(items: readonly Question[]): string[] {
@@ -114,6 +177,12 @@ export function filterItems(items: readonly Question[], filter: StudyFilter): Qu
       (!q.tags.contentTopic || !filter.topics.includes(q.tags.contentTopic))
     )
       return false;
+    if (filter.ncsbnAreas.length > 0) {
+      const matches =
+        (q.tags.subCategory && filter.ncsbnAreas.includes(q.tags.subCategory)) ||
+        filter.ncsbnAreas.includes(q.tags.clientNeed);
+      if (!matches) return false;
+    }
     return true;
   });
 }

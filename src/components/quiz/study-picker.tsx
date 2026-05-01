@@ -11,9 +11,11 @@ import {
   emptyFilter,
   filterItems,
   itemTypeLabel,
+  ncsbnCategoryLabel,
   specialtyLabel,
   uniqueBodySystems,
   uniqueItemTypes,
+  uniqueNcsbnAreas,
   uniqueSpecialties,
   type StudyFilter,
 } from "@/lib/content/filters";
@@ -33,6 +35,7 @@ export function StudyPicker({ bank }: StudyPickerProps) {
   const allSpecialties = useMemo(() => uniqueSpecialties(bank), [bank]);
   const allBodySystems = useMemo(() => uniqueBodySystems(bank), [bank]);
   const allItemTypes = useMemo(() => uniqueItemTypes(bank), [bank]);
+  const allNcsbnAreas = useMemo(() => uniqueNcsbnAreas(bank), [bank]);
 
   const matched = useMemo(() => filterItems(bank, filter), [bank, filter]);
   const effectiveSize = size === 0 ? matched.length : Math.min(size, matched.length);
@@ -105,6 +108,13 @@ export function StudyPicker({ bank }: StudyPickerProps) {
         <Eyebrow withRule={false}>Or build your own</Eyebrow>
 
         <FilterRow
+          label="NCSBN content area"
+          all={allNcsbnAreas.map((s) => ({ value: s, label: ncsbnCategoryLabel(s) }))}
+          selected={filter.ncsbnAreas}
+          onChange={(ncsbnAreas) => setFilter((f) => ({ ...f, ncsbnAreas }))}
+        />
+
+        <FilterRow
           label="Body system"
           all={allBodySystems.map((s) => ({ value: s, label: bodySystemLabel(s) }))}
           selected={filter.bodySystems}
@@ -145,7 +155,9 @@ export function StudyPicker({ bank }: StudyPickerProps) {
             {matched.length} match{matched.length === 1 ? "" : "es"} · {effectiveSize} in this set
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            {(filter.bodySystems.length > 0 || filter.itemTypes.length > 0) && (
+            {(filter.bodySystems.length > 0 ||
+              filter.itemTypes.length > 0 ||
+              filter.ncsbnAreas.length > 0) && (
               <button
                 onClick={() => setFilter(emptyFilter)}
                 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint hover:text-ink"
