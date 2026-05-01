@@ -12,6 +12,91 @@
 
 ---
 
+## ⚙️ Skills Usage Protocol (READ BEFORE EVERY PROMPT)
+
+> **Rule:** On every prompt, scan this map and invoke EVERY skill that applies to the work in scope. If multiple apply, invoke them in the order listed. If none apply, state that explicitly. Skills marked ⭐ are the default-on skills for any non-trivial task.
+
+### Default-on for any coding work
+- ⭐ **simplify** (built-in) — review changed code for reuse, quality, efficiency before declaring done
+- ⭐ **verification-quality** — truth-score and verify outputs before completion (≥ 0.95 threshold)
+- ⭐ **tdd-workflow** — mock-first, outside-in test development on any new logic
+- ⭐ **pair-programming** — driver/navigator mode with continuous review for non-trivial features
+- ⭐ **security-review** (built-in) — run before merging any change that touches auth, RLS, payments, or user data
+
+### Planning, research, and discovery
+- **deep-research** — any prompt that requires multi-source research (NCLEX standards lookups, drug/lab verification, clinical guideline checks)
+- **graphify** — when mapping content relationships (concept ↔ drug ↔ lab ↔ question), turn into knowledge graphs
+- **browser** — any prompt requiring live web verification (NCSBN PDFs, FDA labels, AHA/CDC guidelines)
+- **skill-builder** — when a recurring workflow emerges, codify it as a new skill
+- **session-start-hook** — when configuring CI/test runners for web sessions
+
+### Multi-agent / large-scope work
+- **swarm-orchestration** — any multi-step task involving ≥ 3 parallel workstreams (e.g., authoring 100 questions across body systems)
+- **swarm-advanced** — research/development/testing distributed workflows (e.g., parallel content generation across specialties)
+- **agent-swarm** — coordinated agent invocation when domain SMEs need to work in parallel
+- **dispatching-parallel-agents** — fanning out independent searches/edits
+- **stream-chain** — when chaining stream-JSON outputs across agents (e.g., research → draft → review pipeline)
+- **hooks-automation** — automate pre/post-task formatting, linting, memory writes
+
+### GitHub & release work
+- **git-workflow** — branch management, conflict resolution, PR lifecycle (use on EVERY commit/push)
+- **github-code-review** — opening or responding to PR review threads
+- **github-project-management** — issue tracking, project board updates, sprint planning
+- **github-release-management** — versioning, release notes, deploy/rollback orchestration
+- **github-workflow-automation** — designing or modifying GitHub Actions workflows
+- **github-multi-repo** — if NECLEX content/templates are split across repos
+
+### Memory & learning systems (for the adaptive engine itself)
+- **agentdb-memory-patterns** — design pattern reference when implementing FSRS/mastery state
+- **agentdb-vector-search** — when adding semantic search to drug/lab/concept lookups
+- **agentdb-optimization** — quantization + HNSW indexing when content corpus grows past 100k items
+- **agentdb-advanced** — distributed/multi-DB if content + user-data are sharded
+- **agentdb-learning** — RL algorithms if/when we add adaptive item selection beyond Rasch
+- **reasoningbank-agentdb** — trajectory tracking + memory distillation for the adaptive engine
+- **reasoningbank-intelligence** — pattern recognition for "why she got this wrong" insights
+
+### Claude API integration
+- **claude-api** (built-in) — any feature using Anthropic SDK; MUST include prompt caching, correct model IDs (Opus 4.7, Sonnet 4.6, Haiku 4.5), and tool-use patterns
+
+### Configuration & harness
+- **update-config** (built-in) — any settings.json / hook / permission change
+- **fewer-permission-prompts** (built-in) — periodically prune permission prompts in this repo's `.claude/settings.json`
+
+### Per-phase invocation map
+| Phase | Required skills (in addition to default-on) |
+|---|---|
+| Phase 0 (Foundations) | deep-research, browser, session-start-hook, update-config |
+| Phase 1 (Design system) | (default-on only; no skill replaces taste — review with `simplify`) |
+| Phase 2 (DB schema) | security-review, graphify (for ER + content graph) |
+| Phase 3 (Quiz engine) | tdd-workflow (heavy), pair-programming, agentdb-memory-patterns |
+| Phase 4 (FSRS) | tdd-workflow, agentdb-memory-patterns, reasoningbank-agentdb |
+| Phase 5 (Flashcards) | agentdb-vector-search (for semantic deck search) |
+| Phase 6 (Content coverage) | swarm-orchestration, deep-research, browser, graphify |
+| Phase 7 (Onboarding) | tdd-workflow |
+| Phase 8 (Analytics) | reasoningbank-intelligence, agentdb-vector-search |
+| Phase 9 (Gamification) | tdd-workflow |
+| Phase 10 (Marketing) | (default-on) |
+| Phase 11 (Stripe) | security-review, tdd-workflow |
+| Phase 12 (A11y/Responsive) | verification-quality (≥ AA pass required) |
+| Phase 13 (Performance) | agentdb-optimization (if vector search is in path), verification-quality |
+| Phase 14 (Security) | security-review (mandatory), update-config |
+| Phase 15 (Legal) | deep-research |
+| Phase 16 (Testing) | tdd-workflow, verification-quality |
+| Phase 17 (Content QA) | swarm-orchestration, deep-research, browser |
+| Phase 18 (Pre-launch) | security-review, github-release-management, verification-quality |
+| Phase 19 (Launch) | github-release-management, github-workflow-automation |
+| Phase 20 (Post-launch) | reasoningbank-intelligence, agentdb-learning |
+
+### Per-prompt protocol
+On receiving a prompt, before tool calls:
+1. Identify which phase(s) the prompt touches.
+2. Pull the row(s) from the table above; combine with the default-on skills.
+3. Invoke each applicable skill via the `Skill` tool (one per skill that materially applies).
+4. If a needed skill isn't installed, note it in the response and proceed without it (don't block).
+5. Always finish with `simplify` + `verification-quality` for any code change.
+
+---
+
 ## Phase 0 — Foundations & Source-of-Truth Verification
 
 ### 0.1 Standards & references (MUST DO BEFORE ANY CONTENT)
