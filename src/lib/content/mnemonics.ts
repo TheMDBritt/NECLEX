@@ -25,6 +25,14 @@ export interface Mnemonic {
   beatStyle?: BeatStyle;
   /** Each entry is one stanza or section, with line breaks preserved. */
   lyrics?: string[];
+  /**
+   * Pre-engineered Suno V5 style-box prompt — vocals first, genre, BPM,
+   * key instruments. Paste into Suno's "Style of Music" field along with
+   * the lyrics (section-tagged) to render a real produced track once,
+   * then drop the resulting MP3 URL into the "Add real beat" field on the
+   * card to make this song play that real audio every time.
+   */
+  sunoStyle?: string;
 
   source?: string;
 }
@@ -279,6 +287,7 @@ export const mnemonics: Mnemonic[] = [
     body: "Rap mnemonic for DKA recognition and treatment order.",
     tune: "Rap · slow trap, ~85 BPM",
     beatStyle: "trap-85",
+    sunoStyle: "Female lead, half-rapped half-spoken, clinical and confident delivery, vocals prominent. Slow trap, 85 BPM, A minor. 808 sub-bass, crisp hi-hat rolls, atmospheric pad. Modern hip-hop production.",
     lyrics: [
 `[Hook]
 Sugar to the sky, breath go fruity, Kussmaul deep
@@ -310,6 +319,7 @@ Otherwise it's fluids, lytes, slow recovery from heaven`,
     body: "Rap-cypher for the four ABG patterns.",
     tune: "Rap · boom-bap, ~92 BPM",
     beatStyle: "boom-bap-92",
+    sunoStyle: "Female lead, classic 90s boom-bap rap delivery, clear articulation, vocals up front. Boom-bap hip-hop, 92 BPM, C minor. Dusty drums, jazzy upright bass, vinyl crackle, head-nod groove.",
     lyrics: [
 `[Hook]
 R-O-M-E, that's the way I read a gas
@@ -338,6 +348,7 @@ DKA, sepsis, kidney shutting up shop`,
     body: "Drill-style bars for the Surviving Sepsis Campaign hour-1 bundle.",
     tune: "Rap · drill, ~140 BPM",
     beatStyle: "drill-140",
+    sunoStyle: "Female lead, tight UK drill flow, confident attitude, vocals crisp and prominent. UK drill, 140 BPM, F minor. Sliding 808 bass, sharp hi-hats, dark melodic stabs, minor-key piano.",
     lyrics: [
 `[Hook]
 Hour one, hour one — get the bundle done
@@ -365,6 +376,7 @@ Septic shock kill quick if you sleep on the conclusion`,
     body: "R&B verse comparing the two adrenal opposites.",
     tune: "R&B · neo-soul, slow groove ~70 BPM",
     beatStyle: "neo-soul-70",
+    sunoStyle: "Smooth female lead, sung neo-soul vocals, contemplative and warm delivery, vocals up front. Neo-soul R&B, 70 BPM, F major. Rhodes electric piano, soft brushed drums, warm upright bass.",
     lyrics: [
 `[Verse — Cushing]
 Too much cortisol, the body keep the salt and weight
@@ -393,6 +405,7 @@ Crisis: steroid push, IV fluids let it flow`,
     body: "Gospel call-and-response for safe medication administration.",
     tune: "Gospel · call & response, hand-clap tempo",
     beatStyle: "gospel-piano",
+    sunoStyle: "Female lead with female choir response, gospel call-and-response, uplifting and worshipful delivery. Contemporary gospel, 80 BPM, C major (C-F-G-C). Acoustic piano, hand claps, soft tambourine, warm Hammond organ pad.",
     lyrics: [
 `[Caller] Right patient!
 [Choir] Two identifiers, every single time
@@ -423,6 +436,7 @@ Right to refuse — honor the patient, every time`,
     body: "R&B verse for left- vs right-sided heart failure.",
     tune: "R&B · neo-soul, mid-tempo ~80 BPM",
     beatStyle: "neo-soul-80",
+    sunoStyle: "Warm sung female lead, soulful neo-soul vocals, mid-tempo groove. Neo-soul R&B, 80 BPM, G minor. Rhodes electric piano, soft drums, walking bass, light tambourine.",
     lyrics: [
 `[Verse — Left]
 Left side back up, push it to the lungs
