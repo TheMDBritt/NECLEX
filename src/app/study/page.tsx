@@ -6,17 +6,15 @@ import { MultipleChoice } from "@/components/quiz/multiple-choice";
 import type { MultipleChoiceQuestion } from "@/lib/types/question";
 
 export const metadata: Metadata = {
-  title: "Demo · A single question, fully shown",
-  description:
-    "A look at how a single NCLEX-style multiple-choice item is rendered, scored, and reviewed.",
+  title: "Study",
 };
 
 /**
- * Demo question — written for accuracy and CJMM-step alignment, but kept
- * short for the marketing surface. Real production items live in the DB.
+ * Seed item bank — written for accuracy and CJMM-step alignment. As the DB
+ * comes online, these move into Supabase and are sourced via a server action.
  */
-const demoQuestion: MultipleChoiceQuestion = {
-  id: "demo-mc-001",
+const seedItem: MultipleChoiceQuestion = {
+  id: "seed-mc-001",
   itemType: "multiple_choice",
   scoringRule: "dichotomous",
   stem:
@@ -75,32 +73,27 @@ const demoQuestion: MultipleChoiceQuestion = {
   },
 };
 
-/**
- * In production, the seed comes from the persisted attempt row. Here we use
- * a fixed string so screenshots and the marketing demo are stable. Visit the
- * page repeatedly and option order will be the same; change the seed and it
- * shuffles.
- */
-const DEMO_SEED = "demo-attempt-2026-05-01";
+const SESSION_SEED = `session-${new Date().toISOString().slice(0, 10)}`;
 
-export default function QuestionDemoPage() {
+export default function StudyPage() {
   return (
     <PageFrame>
       <Container size="md">
-        <section className="pb-24 pt-20 sm:pt-28 lg:pt-32">
-          <Eyebrow>Demo · One full question</Eyebrow>
-          <h1 className="mt-4 max-w-[24ch] font-display text-[clamp(2rem,4.6vw,3.5rem)] font-light leading-[1.08] tracking-[-0.025em] text-ink">
-            How a single item is rendered, scored, and reviewed.
-          </h1>
-          <p className="mt-6 max-w-[58ch] font-body text-[1.0625rem] leading-[1.65] text-ink-soft">
-            This is exactly the layout a learner sees during a study session — soft typography,
-            warm feedback, full rationale with cited sources. Option order shuffles per attempt;
-            the seed is persisted so review mode replays what was actually shown.
-          </p>
-
-          <div className="mt-12">
-            <MultipleChoice question={demoQuestion} shuffleSeed={DEMO_SEED} />
+        <section className="pb-16 pt-12 sm:pt-16">
+          <div className="flex items-center justify-between">
+            <Eyebrow>Today's mix · 1 of 25</Eyebrow>
+            <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+              Untimed
+            </p>
           </div>
+
+          <div className="mt-8">
+            <MultipleChoice question={seedItem} shuffleSeed={SESSION_SEED} />
+          </div>
+
+          <p className="mt-8 text-center font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+            Take a breath between items. There's no rush.
+          </p>
         </section>
       </Container>
     </PageFrame>

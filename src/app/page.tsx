@@ -1,105 +1,136 @@
+import Link from "next/link";
 import { Botanical } from "@/components/marks/botanical";
-import { RevealHeading } from "@/components/marks/reveal-heading";
 import { Button } from "@/components/primitives/button";
 import { Container } from "@/components/primitives/container";
 import { Eyebrow } from "@/components/primitives/eyebrow";
 import { PageFrame } from "@/components/shell/page-frame";
 
-const promises = [
+const today = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
+
+const queues = [
   {
-    kicker: "01 — Calm",
-    title: "Soft on the nervous system",
-    body: "No alarm-red. No shaming streaks. Optional untimed practice. Breathing breaks built in.",
+    href: "/study",
+    title: "Today's mix",
+    pull: "25 questions, hand-picked.",
+    body: "Yesterday's misses, plus fresh items in the topics that need another pass.",
+    accent: "lavender",
+    cta: "Begin",
   },
   {
-    kicker: "02 — Accurate",
-    title: "Sourced, not invented",
-    body: "Every rationale traces to NCSBN, FDA labeling, or a current clinical guideline. No AI guesses.",
+    href: "/study?mode=weak",
+    title: "Weak areas",
+    pull: "Pharm + patho, gentle reps.",
+    body: "Spaced repetition tuned to where things last slipped — never punishing, just attentive.",
+    accent: "sage",
+    cta: "Drill",
   },
   {
-    kicker: "03 — Adaptive",
-    title: "Tuned to your weak spots",
-    body: "Spaced repetition with FSRS. Mastery tracked across all six clinical-judgment steps.",
+    href: "/reference",
+    title: "Quick reference",
+    pull: "Drugs · labs · mnemonics.",
+    body: "Open the cabinet — full drug cards, lab ranges, and the mnemonic songs that actually stick.",
+    accent: "clay",
+    cta: "Browse",
   },
-];
+] as const;
+
+const accentText = {
+  lavender: "text-lavender-600",
+  sage: "text-sage-600",
+  clay: "text-clay-600",
+} as const;
+
+const accentBg = {
+  lavender: "bg-lavender-50",
+  sage: "bg-sage-50",
+  clay: "bg-clay-50",
+} as const;
 
 export default function HomePage() {
   return (
     <PageFrame withAtmosphere>
-      {/* Decorative botanical mark — lower right, lavender wash */}
       <Botanical
         aria-hidden
-        className="pointer-events-none absolute -right-32 top-[280px] -z-10 h-[680px] w-[680px] text-lavender-200/65 sm:-right-20 lg:right-0"
+        className="pointer-events-none absolute -right-32 top-[280px] -z-10 h-[680px] w-[680px] text-lavender-200/55 sm:-right-20 lg:right-0"
       />
 
       <Container>
-        <section className="pb-32 pt-24 sm:pt-32 lg:pt-40">
-          <div className="grid grid-cols-12 gap-y-16">
-            <div
-              className="reveal-fade col-span-12 lg:col-span-3"
-              style={{ ["--reveal-i" as string]: 0 }}
-            >
-              <Eyebrow>For the NCLEX-RN &amp; NCLEX-PN</Eyebrow>
-            </div>
+        <section className="pb-16 pt-20 sm:pt-28">
+          <Eyebrow>{today}</Eyebrow>
+          <h1 className="mt-5 max-w-[20ch] font-display text-[clamp(2.5rem,6vw,5.5rem)] font-light leading-[1.04] tracking-[-0.035em] text-ink">
+            Welcome back. Take a{" "}
+            <em className="font-display italic text-lavender-600">slow breath</em>, then begin.
+          </h1>
+          <p className="mt-7 max-w-[52ch] font-body text-[1.0625rem] leading-[1.65] text-ink-soft">
+            Today's queue is ready when you are. No timer unless you ask for one.
+          </p>
 
-            <div className="col-span-12 lg:col-span-9 lg:col-start-4">
-              <h1 className="font-display text-[clamp(2.75rem,7.2vw,7rem)] font-light leading-[1.02] tracking-[-0.035em] text-ink">
-                <RevealHeading
-                  lines={[
-                    ["A", "calmer", "way"],
-                    ["to", "study", "for"],
-                    [
-                      "the",
-                      <em key="x" className="font-display italic text-lavender-600">
-                        NCLEX.
-                      </em>,
-                    ],
-                  ]}
-                />
-              </h1>
-            </div>
-
-            <div className="col-span-12 mt-6 lg:col-span-5 lg:col-start-7">
-              <p
-                className="reveal-fade max-w-[44ch] font-body text-[1.0625rem] leading-[1.65] text-ink-soft"
-                style={{ ["--reveal-i" as string]: 9 }}
-              >
-                Built around how <em className="not-italic text-ink">you</em> actually learn —
-                songs, visuals, real reps. Anchored in the 2026 NCSBN test plan, every rationale
-                cited. Quietly relentless about getting you ready.
-              </p>
-            </div>
-
-            <div
-              className="reveal-fade col-span-12 mt-10 flex flex-wrap items-center gap-4 lg:col-span-5 lg:col-start-7"
-              style={{ ["--reveal-i" as string]: 10 }}
-            >
-              <Button href="/start" arrow>
-                Begin a quiet session
-              </Button>
-              <Button href="/method" variant="ghost" size="sm">
-                <span className="link-draw">How the method works</span>
-              </Button>
-            </div>
-
-            <div className="col-span-12 mt-24 grid grid-cols-1 gap-y-8 border-t border-ink/10 pt-10 sm:grid-cols-3 sm:gap-x-8 lg:mt-32">
-              {promises.map((promise, i) => (
-                <article
-                  key={promise.kicker}
-                  className="reveal-fade flex flex-col gap-3"
-                  style={{ ["--reveal-i" as string]: 11 + i }}
-                >
-                  <Eyebrow withRule={false}>{promise.kicker}</Eyebrow>
-                  <h3 className="font-display text-[1.5rem] leading-[1.18] tracking-[-0.02em] text-ink">
-                    {promise.title}
-                  </h3>
-                  <p className="max-w-[34ch] font-body text-[15px] leading-[1.6] text-ink-soft">
-                    {promise.body}
-                  </p>
-                </article>
-              ))}
-            </div>
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <Button href="/study" arrow>
+              Begin today's mix
+            </Button>
+            <Button href="/reference" variant="ghost" size="sm">
+              <span className="link-draw">Open the reference cabinet</span>
+            </Button>
           </div>
+        </section>
+
+        <section aria-labelledby="queues" className="pb-16">
+          <h2 id="queues" className="sr-only">
+            Study queues
+          </h2>
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {queues.map((q) => (
+              <Link
+                key={q.title}
+                href={q.href}
+                className={`group lift relative flex flex-col justify-between rounded-2xl border border-ink/10 ${accentBg[q.accent]} p-7 sm:p-8`}
+              >
+                <div>
+                  <p className={`font-display text-[1.625rem] font-light leading-[1.18] tracking-[-0.02em] text-ink`}>
+                    {q.title}
+                  </p>
+                  <p className={`mt-2 font-display text-[1.0625rem] italic leading-[1.45] ${accentText[q.accent]}`}>
+                    {q.pull}
+                  </p>
+                  <p className="mt-5 max-w-[36ch] font-body text-[14.5px] leading-[1.6] text-ink-soft">
+                    {q.body}
+                  </p>
+                </div>
+                <p className="mt-10 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink">
+                  {q.cta}
+                  <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
+                    →
+                  </span>
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section
+          aria-label="At-a-glance"
+          className="mb-12 grid grid-cols-1 gap-5 rounded-2xl border border-ink/10 bg-paper-deep/40 p-7 sm:grid-cols-3 sm:p-8"
+        >
+          {[
+            { label: "Streak", value: "—", note: "Welcome back whenever" },
+            { label: "Questions this week", value: "—", note: "Sets when you start" },
+            { label: "Strongest CJMM step", value: "—", note: "Builds with practice" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+                {stat.label}
+              </p>
+              <p className="mt-2 font-display text-[2rem] font-light leading-none tracking-[-0.025em] text-ink">
+                {stat.value}
+              </p>
+              <p className="mt-2 font-body text-[13px] leading-[1.5] text-ink-faint">{stat.note}</p>
+            </div>
+          ))}
         </section>
       </Container>
     </PageFrame>

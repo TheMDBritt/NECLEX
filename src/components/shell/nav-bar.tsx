@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { Container } from "@/components/primitives/container";
-import { Button } from "@/components/primitives/button";
 import { Wordmark } from "@/components/marks/wordmark";
 
 const links = [
-  { href: "/about", label: "Our approach" },
-  { href: "/method", label: "The method" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/study", label: "Study" },
+  { href: "/reference", label: "Reference" },
+  { href: "/progress", label: "Progress" },
 ] as const;
 
 export function NavBar() {
@@ -17,7 +16,7 @@ export function NavBar() {
           <Wordmark />
           <nav
             aria-label="Primary"
-            className="hidden items-center gap-9 font-body text-[14px] tracking-[0.02em] text-ink-soft sm:flex"
+            className="flex items-center gap-7 font-body text-[14px] tracking-[0.02em] text-ink-soft sm:gap-9"
           >
             {links.map((link) => (
               <Link key={link.href} href={link.href} className="link-draw">
@@ -25,9 +24,6 @@ export function NavBar() {
               </Link>
             ))}
           </nav>
-          <Button href="/sign-in" variant="outline" size="sm">
-            Sign in
-          </Button>
         </div>
       </Container>
     </header>

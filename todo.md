@@ -1,729 +1,395 @@
-# NCLEX Study Website — Build Plan (todo.md)
+# NECLEX — Build Plan (todo.md)
 
-> A calm, accurate, song-friendly NCLEX prep platform built around a specific learner profile:
-> still in nursing school, 8+ hr/day study capacity, high test anxiety, learns best through
-> songs/mnemonics + visuals + practice questions, hardest subjects are pathophysiology and
-> pharmacology, prefers detailed rationales with concept re-anchoring, studies on phone and
-> laptop equally, and wants to (1) feel calm walking in, (2) see weekly progress, (3) make
-> hard topics click, (4) pass on the first try.
+> A free, calm, accurate NCLEX prep companion built for one specific person.
 >
-> All content traceable to the **2026 NCSBN NCLEX-RN/PN Test Plans** (effective Apr 1, 2026 – Mar 31, 2029).
-> Built on the **NCSBN Clinical Judgment Measurement Model (CJMM)**.
+> **Learner profile:** still in nursing school, 8+ hr/day study capacity, high test
+> anxiety, learns best through songs/mnemonics + visuals + practice questions, hardest
+> subjects are pathophysiology and pharmacology, prefers detailed rationales with
+> concept re-anchoring, studies on phone and laptop equally, wants to (1) feel calm
+> walking in, (2) see weekly progress, (3) make hard topics click, (4) pass first try.
+>
+> **Out of scope (cut intentionally):** marketing pages, sign-up/sign-in, payments,
+> sales copy, public landing page, growth funnel. This is not a product, it is her
+> tool. The home page is the app.
+>
+> **In scope:** the actual study experience — practice questions, flashcards, drug
+> and lab reference, mnemonics, mastery dashboard, content authoring pipeline.
+>
+> All content traceable to the **2026 NCSBN NCLEX-RN/PN Test Plans** (effective
+> Apr 1, 2026 – Mar 31, 2029). Built on the **NCSBN Clinical Judgment Measurement
+> Model (CJMM)**.
 
 ---
 
 ## 🚨 BUILD DIRECTIVE
-> **This app MUST be built using the Claude Code skills below.** Every phase, every feature, every commit, every commit message, every UI component, every test, every legal doc, every marketing page — produced with the relevant skills invoked. The skills are how we hit the "no AI slop, polished consumer-grade" bar the user demanded. **Building without the skills = build failure.**
+> **This app MUST be built using the Claude Code skills below.** Every phase, every
+> feature, every commit message, every UI component, every test — produced with
+> the relevant skills invoked. The skills are how we hit the "no AI slop, polished
+> consumer-grade" bar. **Building without the skills = build failure.**
 >
-> When starting work on any phase or task: open this file → match the work to the per-phase map → invoke each listed skill via the `Skill` tool → THEN write code. Do not improvise. Skills first, code second.
+> When starting work on any phase or task: open this file → match the work to the
+> per-phase map → invoke each listed skill via the `Skill` tool → THEN write code.
 
-## ⚙️ Skills Usage Protocol (READ BEFORE EVERY PROMPT — MANDATORY)
-
-> **HARD RULE — NON-NEGOTIABLE:** Skills MUST be used on **every build action** and **every prompt** in this project. Before any tool call, before any file edit, before any commit, before any message back to the user — scan this protocol, identify every applicable skill, and invoke them via the `Skill` tool. Skipping skills is a process failure.
->
-> **Why this is mandatory:** Skills encode quality gates (verification-quality), aesthetic standards (frontend-design, brand-guidelines), test discipline (tdd-workflow, webapp-testing), security review (security-review), and content production (xlsx, pdf, docx, theme-factory). Without them the build degrades into generic AI output — exactly what this project must NOT be ("no AI slop" — user mandate).
->
-> **Enforcement check (run mentally on EVERY prompt):**
-> 1. ✅ Did I identify the phase(s) this prompt touches?
-> 2. ✅ Did I list every skill from the per-phase map AND the default-on list?
-> 3. ✅ Did I invoke each one via the `Skill` tool (not just mention it)?
-> 4. ✅ Did I close the loop with `simplify` + `verification-quality` for code, or `frontend-design` + `webapp-testing` for UI?
-> 5. ✅ If a needed skill is missing, did I flag it explicitly in the response?
->
-> If any answer is "no" — STOP, run the missed skill, then continue. Skills are not optional and not aspirational; they are the build standard.
+## ⚙️ Skills Usage Protocol (MANDATORY on every prompt)
 
 ### Default-on for any coding work
-- ⭐ **simplify** (built-in) — review changed code for reuse, quality, efficiency before declaring done
-- ⭐ **verification-quality** — truth-score and verify outputs before completion (≥ 0.95 threshold)
+- ⭐ **simplify** — review changed code for reuse, quality, efficiency
+- ⭐ **verification-quality** — truth-score outputs (≥ 0.95), auto-rollback
 - ⭐ **tdd-workflow** — mock-first, outside-in test development on any new logic
-- ⭐ **pair-programming** — driver/navigator mode with continuous review for non-trivial features
-- ⭐ **security-review** (built-in) — run before merging any change that touches auth, RLS, payments, or user data
-- ⭐ **webapp-testing** — Playwright-based UI verification on any frontend change before declaring done
+- ⭐ **pair-programming** — driver/navigator with continuous review
+- ⭐ **webapp-testing** — Playwright UI verification on any frontend change
 
-### Planning, research, and discovery
-- **deep-research** — any prompt that requires multi-source research (NCLEX standards lookups, drug/lab verification, clinical guideline checks)
-- **graphify** — when mapping content relationships (concept ↔ drug ↔ lab ↔ question), turn into knowledge graphs
-- **browser** — any prompt requiring live web verification (NCSBN PDFs, FDA labels, AHA/CDC guidelines)
-- **skill-creator** — preferred for creating/editing/measuring skills (supersedes skill-builder when both apply)
-- **skill-builder** — fallback skill scaffolding
-- **session-start-hook** — when configuring CI/test runners for web sessions
-- **mcp-builder** — if we expose study data (drugs, labs, study state) via an MCP server for IDE/extension integrations
-- **doc-coauthoring** — drafting docs, specs, decision records, content style guides
-
-### Frontend, design, and content production
-- **frontend-design** — MANDATORY on any UI work — prevents generic AI aesthetic, drives the polished Notion/Linear-grade look
-- **brand-guidelines** — when applying or auditing brand colors/typography across artifacts
-- **theme-factory** — applying preset or custom themes to artifacts (slides, docs, landing pages, dashboards)
-- **canvas-design** — original visual art (PNG/PDF) for marketing posters, concept illustrations
-- **algorithmic-art** — generative/p5.js visuals (e.g., onboarding hero, brand motion)
-- **web-artifacts-builder** — multi-component prototype artifacts (claude.ai-style) for design exploration before building in Next.js
-
-### Document & content I/O
-- **pdf** — generating weekly digest PDFs, candidate-style readiness reports, exporting study summaries; OCR if scanning legacy nursing notes
-- **docx** — Word exports of progress reports, study guides
-- **pptx** — SME training decks, beta-program briefings, school-partnership materials
-- **xlsx** — content authoring (question banks), drug/lab seed sheets, content QA logs, beta feedback tracking
-- **internal-comms** — drafting status updates, launch announcements, incident reports
-- **slack-gif-creator** — quick demo GIFs for social/launch (low priority)
-
-### Multi-agent / large-scope work
-- **swarm-orchestration** — any multi-step task involving ≥ 3 parallel workstreams (e.g., authoring 100 questions across body systems)
-- **swarm-advanced** — research/development/testing distributed workflows (e.g., parallel content generation across specialties)
-- **agent-swarm** — coordinated agent invocation when domain SMEs need to work in parallel
-- **dispatching-parallel-agents** — fanning out independent searches/edits
-- **stream-chain** — when chaining stream-JSON outputs across agents (e.g., research → draft → review pipeline)
-- **hooks-automation** — automate pre/post-task formatting, linting, memory writes
-
-### GitHub & release work
-- **git-workflow** — branch management, conflict resolution, PR lifecycle (use on EVERY commit/push)
-- **github-code-review** — opening or responding to PR review threads
-- **github-project-management** — issue tracking, project board updates, sprint planning
-- **github-release-management** — versioning, release notes, deploy/rollback orchestration
-- **github-workflow-automation** — designing or modifying GitHub Actions workflows
-- **github-multi-repo** — if NECLEX content/templates are split across repos
-
-### Memory & learning systems (for the adaptive engine itself)
-- **agentdb-memory-patterns** — design pattern reference when implementing FSRS/mastery state
-- **agentdb-vector-search** — when adding semantic search to drug/lab/concept lookups
-- **agentdb-optimization** — quantization + HNSW indexing when content corpus grows past 100k items
-- **agentdb-advanced** — distributed/multi-DB if content + user-data are sharded
-- **agentdb-learning** — RL algorithms if/when we add adaptive item selection beyond Rasch
-- **reasoningbank-agentdb** — trajectory tracking + memory distillation for the adaptive engine
-- **reasoningbank-intelligence** — pattern recognition for "why she got this wrong" insights
-
-### Claude API integration
-- **claude-api** (built-in) — any feature using Anthropic SDK; MUST include prompt caching, correct model IDs (Opus 4.7, Sonnet 4.6, Haiku 4.5), and tool-use patterns
-
-### Configuration & harness
-- **update-config** (built-in) — any settings.json / hook / permission change
-- **fewer-permission-prompts** (built-in) — periodically prune permission prompts in this repo's `.claude/settings.json`
+### When the work matches
+- **frontend-design** — every UI surface (mandatory; anti AI-slop)
+- **ui-ux-pro-max** + **ui-design-system** — design tokens, components, polish
+- **deep-research** + **browser** — clinical-fact verification (NCSBN, FDA, AHA, CDC)
+- **graphify** — content relationships (concept ↔ drug ↔ lab ↔ question) as a graph
+- **content-humanizer** + **behuman** + **copywriting** + **copy-editing** — every line
+  of UI copy and every rationale (anti AI-slop, sounds like a real person)
+- **karpathy-coder** + **karpathy-check** + **adversarial-reviewer** + **code-reviewer** +
+  **dependency-auditor** — code review pipeline
+- **agentdb-vector-search** — semantic search across concepts/drugs/labs
+- **agentdb-memory-patterns** + **reasoningbank-agentdb** — adaptive engine state
+- **xlsx** + **pdf** — content authoring (question banks) and source extraction
+  (NCSBN PDFs, drug labels)
+- **a11y-audit** — accessibility verification
 
 ### Per-phase invocation map
 | Phase | Required skills (in addition to default-on) |
 |---|---|
-| Phase 0 (Foundations) | deep-research, browser, session-start-hook, update-config, doc-coauthoring |
-| Phase 1 (Design system) | frontend-design (mandatory), ui-ux-pro-max, ui-design-system, ux-researcher-designer, apple-hig-expert, brand-guidelines, theme-factory, canvas-design, algorithmic-art, web-artifacts-builder, epic-design |
-| Phase 2 (DB schema) | security-review, graphify (for ER + content graph), xlsx (seed sheets) |
-| Phase 3 (Quiz engine) | frontend-design, tdd-workflow (heavy), pair-programming, agentdb-memory-patterns, webapp-testing |
-| Phase 4 (FSRS) | tdd-workflow, agentdb-memory-patterns, reasoningbank-agentdb |
-| Phase 5 (Flashcards) | frontend-design, agentdb-vector-search (semantic deck search), webapp-testing |
-| Phase 6 (Content coverage) | swarm-orchestration, deep-research, browser, graphify, xlsx (question bank authoring), pdf (clinical source extraction) |
-| Phase 7 (Onboarding) | frontend-design, tdd-workflow, webapp-testing |
-| Phase 8 (Analytics) | frontend-design, reasoningbank-intelligence, agentdb-vector-search, pdf (weekly digest export) |
-| Phase 9 (Gamification) | frontend-design, tdd-workflow, canvas-design (achievement art) |
-| Phase 10 (Marketing) | frontend-design, brand-guidelines, canvas-design, algorithmic-art, theme-factory, internal-comms (launch comms) |
-| Phase 11 (Stripe) | security-review, tdd-workflow, frontend-design (checkout UI), webapp-testing |
-| Phase 12 (A11y/Responsive) | verification-quality (≥ AA pass required), webapp-testing |
-| Phase 13 (Performance) | agentdb-optimization (if vector search is in path), verification-quality, webapp-testing |
-| Phase 14 (Security) | security-review (mandatory), update-config |
-| Phase 15 (Legal) | deep-research, doc-coauthoring, docx (formal policy docs) |
-| Phase 16 (Testing) | tdd-workflow, verification-quality, webapp-testing |
-| Phase 17 (Content QA) | swarm-orchestration, deep-research, browser, xlsx (errata logs) |
-| Phase 18 (Pre-launch) | security-review, github-release-management, verification-quality, webapp-testing, pptx (beta briefing deck) |
-| Phase 19 (Launch) | github-release-management, github-workflow-automation, internal-comms, slack-gif-creator (demo gifs), canvas-design (social art) |
-| Phase 20 (Post-launch) | reasoningbank-intelligence, agentdb-learning, internal-comms (status updates), pdf (monthly reports) |
-
-### High-leverage additions from the alirezarezvani bundle (route into existing phases)
-- **senior-frontend** + **senior-backend** + **senior-fullstack** + **senior-architect** — scaffolding & architecture review for Phases 0/2/3
-- **senior-qa** + **playwright-pro** + **a11y-audit** + **api-test-suite-builder** — Phase 12 (a11y) and Phase 16 (testing)
-- **senior-secops** + **senior-security** + **ai-security** + **cloud-security** + **security-pen-testing** + **threat-detection** + **incident-response** + **incident-commander** — Phase 14 (security)
-- **gdpr-dsgvo-expert** + **soc2-compliance** + **isms-audit-expert** — Phase 15 (legal/privacy)
-- **database-designer** + **database-schema-designer** + **sql-database-assistant** — Phase 2 (schema)
-- **stripe-integration-expert** — Phase 11 (payments)
-- **rag-architect** + **agentdb-vector-search** — Phase 5 (semantic flashcard/concept search)
-- **prompt-engineer-toolkit** + **senior-prompt-engineer** + **prompt-governance** + **llm-cost-optimizer** — any feature that calls Claude
-- **product-manager-toolkit** + **rice** + **persona** + **user-story** + **prd** — Phase 0 planning + ongoing scope mgmt
-- **scrum-master** + **sprint-plan** + **sprint-health** + **retro** — running the build cadence
-- **ux-researcher-designer** + **ui-design-system** + **apple-hig-expert** — Phase 1 design system, mobile guidance
-- **epic-design** + **landing-page-generator** + **saas-scaffolder** — Phase 10 marketing + initial scaffold
-- **content-humanizer** + **behuman** + **copywriting** + **copy-editing** — every piece of UI copy and rationale prose (anti-AI-slop)
-- **karpathy-coder** + **karpathy-check** + **cs-karpathy-reviewer** + **adversarial-reviewer** + **code-reviewer** + **pr-review-expert** + **dependency-auditor** + **tech-debt-tracker** — code review pipeline
-- **observability-designer** + **runbook-generator** + **release-manager** + **env-secrets-manager** + **secrets-vault-manager** — Phase 18/19 (launch + ops)
-- **changelog-generator** + **tc-tracker** — release notes + change tracking
-- **product-analytics** + **statistical-analyst** + **experiment-designer** + **ab-test-setup** + **analytics-tracking** + **campaign-analytics** — Phase 8 dashboard + Phase 20 experiments
-- **onboarding-cro** + **signup-flow-cro** + **page-cro** + **paywall-upgrade-cro** + **form-cro** + **popup-cro** + **churn-prevention** — Phase 7 onboarding + Phase 11 conversion
-- **email-sequence** + **email-template-builder** + **cold-email** — Phase 19 launch + Phase 20 lifecycle
-- **ai-seo** + **seo-audit** + **schema-markup** + **programmatic-seo** + **site-architecture** + **competitor-alternatives** — Phase 10 marketing/SEO
-- **executive-mentor** + **chief-of-staff** + **CEO/CTO/CMO/CPO/CFO advisors** — strategic check-ins (use sparingly)
-- **autoresearch-agent** + **agent-designer** + **agent-protocol** + **agent-workflow-designer** — Phase 20 self-improving content/engine
-- **wiki-* family** (`wiki-init`/`-ingest`/`-query`/`-lint`) + **llm-wiki** — internal knowledge vault for clinical sources
-- **plugin-audit** + **skill-security-auditor** — periodically audit our installed skill set
-- **command-guide** — mental model for choosing the right skill on each prompt
+| Foundations & tooling | deep-research, browser, session-start-hook, update-config |
+| Design system | frontend-design (mandatory), ui-ux-pro-max, ui-design-system, ux-researcher-designer, apple-hig-expert, brand-guidelines, theme-factory, canvas-design |
+| DB schema | graphify (ER + content graph), xlsx (seed sheets) |
+| Quiz engine | frontend-design, tdd-workflow (heavy), pair-programming, agentdb-memory-patterns, webapp-testing |
+| FSRS | tdd-workflow, agentdb-memory-patterns, reasoningbank-agentdb |
+| Flashcards | frontend-design, agentdb-vector-search |
+| Content | swarm-orchestration, deep-research, browser, graphify, xlsx, pdf |
+| Reference UI (drugs/labs/mnemonics) | frontend-design, agentdb-vector-search |
+| Progress dashboard | frontend-design, reasoningbank-intelligence, agentdb-vector-search |
+| A11y | verification-quality, webapp-testing |
+| Performance | agentdb-optimization (if vector search is in path), verification-quality |
 
 ### Per-prompt protocol
-On receiving a prompt, before tool calls:
-1. Identify which phase(s) the prompt touches.
-2. Pull the row(s) from the table above; combine with the default-on skills.
-3. Invoke each applicable skill via the `Skill` tool (one per skill that materially applies).
-4. If a needed skill isn't installed, note it in the response and proceed without it (don't block).
-5. Always finish with `simplify` + `verification-quality` for any code change.
+1. Identify the phase(s) the prompt touches.
+2. List every applicable skill (default-on + per-phase).
+3. Invoke each via the `Skill` tool — not just mention.
+4. Close the loop with `simplify` + `verification-quality` for code,
+   `frontend-design` + `webapp-testing` for UI.
+5. If a needed skill is missing, flag it explicitly.
 
 ---
 
-## Phase 0 — Foundations & Source-of-Truth Verification
+## Phase 0 — Foundations (DONE)
 
-### 0.1 Standards & references (MUST DO BEFORE ANY CONTENT)
-- [ ] Download the official **2026 NCLEX-RN Test Plan PDF** from `nclex.com/files/2026_RN_Test Plan_English-F.pdf`
-- [ ] Download the official **2026 NCLEX-PN Test Plan PDF** from `nclex.com/files/2026_PN Test Plan-F.pdf`
-- [ ] Cross-check Client Needs % bands (RN and PN) against the PDFs and lock exact numbers in `/content/standards/2026-test-plan.json`
-- [ ] Verify "Pharmacological and Parenteral Therapies" range (12–18% vs 13–19% — confirm)
-- [ ] Confirm 2026 list of NGN item types and any wording changes vs 2023
-- [ ] Confirm 2026 Integrated Processes list (esp. inclusion of Clinical Judgment)
-- [ ] Save NCSBN CJMM diagram + 6 cognitive step definitions verbatim into `/content/standards/cjmm.json`
-- [ ] Save NCSBN CAT rules (85 min, 150 max, 5h, 15 unscored, 95% CI / max-length / ROOT) into `/content/standards/cat.json`
-- [ ] Save passing standards: RN = 0.00 logits, PN = −0.18 logits → `/content/standards/passing.json`
-
-### 0.2 Clinical reference sources (cite for every fact)
-- [ ] Lock **lab value source-of-truth**: AACC standardized adult/pediatric ranges (cite source per row)
-- [ ] Lock **drug source-of-truth**: current FDA labeling (DailyMed) + Lippincott Drug Guide for nursing implications
-- [ ] Lock **clinical guideline sources**: AHA (cardiac/ACLS/BLS), CDC (infection control/vaccines), ADA (diabetes), GOLD (COPD), KDIGO (renal), NIH (oncology), Bright Futures (peds)
-- [ ] Lock **OB source-of-truth**: ACOG + AWHONN
-- [ ] Lock **mental health source-of-truth**: DSM-5-TR, APA guidelines
-- [ ] Lock **drug calculation conventions**: dimensional analysis with mL/hr, mcg/kg/min, mEq/L
-- [ ] Document a "no AI-generated facts" policy in `CONTENT_POLICY.md` — every rationale cites a source
-
-### 0.3 Repo & tooling
-- [ ] Initialize Next.js 15 (App Router) + TypeScript + Turbopack
-- [ ] Configure Tailwind CSS v4 + CSS variables for theming
-- [ ] Install shadcn/ui base components (Button, Card, Dialog, Sheet, Tabs, Toast, Tooltip, Progress, Toggle)
-- [ ] Configure ESLint (next/core-web-vitals) + Prettier + lint-staged + Husky pre-commit
-- [ ] Configure path aliases (`@/components`, `@/lib`, `@/content`, `@/db`)
-- [ ] Set up `pnpm` workspace
-- [ ] Add Vitest + React Testing Library for unit/component tests
-- [ ] Add Playwright for E2E tests
-- [ ] Add Storybook for component library + visual review
-- [ ] Configure GitHub Actions: typecheck, lint, unit, E2E, build, Lighthouse
-- [ ] Set up commitlint with Conventional Commits
-- [ ] Add `.env.example` with all env vars documented
-- [ ] Add `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`
-
-### 0.4 Hosting & infra
-- [ ] Provision Vercel project; connect to `main` branch
-- [ ] Provision Supabase project (Postgres 15 + Auth + Storage + Edge Functions)
-- [ ] Configure preview deploys per PR
-- [ ] Configure custom domain + HTTPS (e.g., `studynurse.app`) — verify availability + price
-- [ ] Configure Vercel Analytics + Speed Insights
-- [ ] Configure Sentry for error tracking (browser + edge runtime)
-- [ ] Configure log drain → Axiom or Logtail
-- [ ] Set Vercel cron jobs for scheduled tasks (FSRS due-card precompute, weekly digest)
+- [x] Init Next.js 15 (App Router) + TypeScript + Turbopack
+- [x] Tailwind CSS v4 with `@theme` tokens
+- [x] ESLint flat config + Prettier + prettier-plugin-tailwindcss
+- [x] Vitest 2 with `@/*` alias
+- [x] Path alias, `.gitignore`, `.env.example`
+- [x] tsconfig strict
+- [ ] Husky + commitlint + lint-staged (when content authoring begins, not before)
+- [ ] GitHub Actions: typecheck, lint, test, build, Lighthouse
+- [ ] Sentry for error tracking (deferred until app is live for her)
 
 ---
 
-## Phase 1 — Design System (calm, modern, intentional)
+## Phase 1 — Design system (DONE)
 
-### 1.1 Brand & aesthetic
-- [ ] Define brand voice: warm, gentle, capable, never alarmist; second-person ("you've got this")
-- [ ] Pick name + wordmark (lockup variants: full, compact, favicon)
-- [ ] Approve color palette: **lavender 50–900**, **sage 50–900**, **warm sand 50–900**, ink (near-black), cream (page bg)
-- [ ] Define semantic colors: success = sage-500, attention = warm amber-500 (NEVER alarm-red), info = lavender-500, focus = lavender-400 ring
-- [ ] Define typography: display = Fraunces or Inter Display, body = Inter (variable), mono = JetBrains Mono
-- [ ] Define type scale (4xl/3xl/2xl/xl/lg/base/sm/xs) + line-height tokens
-- [ ] Define spacing scale (4px base, generous: 8/12/16/24/32/48/64/96)
-- [ ] Define radius tokens (sm 8, md 12, lg 16, xl 24 — rounded cards everywhere)
-- [ ] Define elevation tokens (soft shadows, never harsh)
-- [ ] Define motion tokens (durations 150/250/400ms; easings: standard, gentle, spring)
-- [ ] Document accessible contrast (≥ AA on every pair, AAA on body text)
+Aesthetic direction locked: **Editorial Apothecary** — Aesop × Kinfolk × Cereal Magazine.
+Soft paper, intelligent serif, dusty botanical accents. The opposite of generic SaaS pastel
+gradient slop.
 
-### 1.2 Component library (shadcn/ui-based, themed)
-- [ ] Button (primary, secondary, ghost, destructive — destructive used sparingly)
-- [ ] Card (default, soft, outlined)
-- [ ] Input, Textarea, Select, Combobox, Checkbox, Radio, Switch
-- [ ] Dialog, Sheet, Popover, Tooltip, HoverCard
-- [ ] Tabs, Accordion, Collapsible
-- [ ] Toast (gentle copy, no red)
-- [ ] Progress (linear + circular)
-- [ ] Skeleton loaders (avoid jarring spinners)
-- [ ] Avatar, Badge, Chip
-- [ ] EmptyState component (encouraging copy)
-- [ ] Confetti / micro-celebration (subtle, opt-out in settings)
-- [ ] Question item primitives: OptionRow, MatrixGrid, BowTieBoard, ClozeDropdown, HighlightText, DragDropZone, TrendChart
-- [ ] Result feedback: GentleResultCard ("Let's look at this together"), RationaleSheet, LinkedConceptCard
-- [ ] BreathingBreak component (4-7-8 box breath, 1-min)
+- [x] Color tokens: paper, ink-aubergine, lavender / sage / clay / indigo (full ramps)
+- [x] Type: Fraunces (variable serif, opsz + SOFT axes) display + Instrument Sans body + JetBrains Mono
+- [x] Spacing scale (4px base, generous)
+- [x] Radius tokens (sm/md/lg/xl/2xl, rounded-everything)
+- [x] Soft elevation tokens (paper-soft, never harsh)
+- [x] Motion tokens: expo-out cubic, soft cubic; quick / base / slow / glide durations
+- [x] Page-load staggered word reveal utility
+- [x] Lift-on-hover utility for cards
+- [x] Link-draw underline utility
+- [x] `prefers-reduced-motion` honored
+- [x] Paper-grain SVG noise overlay (faint, fixed, multiply)
+- [x] Focus-visible ring on every interactive
+- [x] Selection color (lavender)
 
-### 1.3 Page templates & layouts
-- [ ] AppShell (sidebar nav, top bar, mobile bottom nav)
-- [ ] FocusMode shell (used for question sessions — minimal chrome)
-- [ ] StudyDashboard layout
-- [ ] ContentBrowser layout (drug DB, lab values, mnemonic library)
-- [ ] Marketing layout (landing, pricing, about, blog)
+### Primitives
+- [x] Container (sm 720 / md 960 / lg 1280)
+- [x] Eyebrow (uppercase mono kicker with optional rule)
+- [x] Button (primary / outline / ghost; md / sm; href → Link or button)
+- [x] Card (soft / outlined / raised; optional .lift)
+- [ ] Input, Textarea, Select, Switch, Checkbox (when onboarding/settings need them)
+- [ ] Dialog, Sheet, Tooltip, Toast (when interaction depth requires)
 
-### 1.4 Storybook
-- [ ] All components have stories
-- [ ] Stories include light + dark mode previews (dark mode = warm-dark, not cold-black)
-- [ ] Visual regression via Chromatic or Playwright screenshot tests
+### Site shell
+- [x] Wordmark with sage-dot accent
+- [x] Botanical SVG ornament (laurel + bell flowers)
+- [x] NavBar (Wordmark + Study / Reference / Progress)
+- [x] SiteFooter (single-line disclaimer; no marketing groups)
+- [x] PageFrame wrapper
+
+### Page surfaces
+- [x] Home — study hub (Today's mix / Weak areas / Reference cabinet)
+- [x] /study — single-question session view with shuffle
+- [x] /reference — cabinet landing (drugs / labs / mnemonics)
+- [x] /progress — CJMM-step + Client-Needs mastery map (skeleton)
 
 ---
 
-## Phase 2 — Database Schema (Supabase / Postgres)
+## Phase 2 — Standards taxonomy (DONE)
 
-### 2.1 Identity & profile
-- [ ] `auth.users` (Supabase Auth: email magic-link + Google OAuth)
-- [ ] `profiles`: id, display_name, avatar_url, timezone, locale, exam_target (`RN` | `PN`), exam_date, study_minutes_per_day_goal, anxiety_level (1–5), created_at, updated_at
-- [ ] `learning_preferences`: profile_id, prefers_songs, prefers_visuals, prefers_practice, prefers_reading, prefers_audio, feedback_style ARRAY, hardest_topics ARRAY, last_updated
-- [ ] `consents`: profile_id, terms_accepted_at, privacy_accepted_at, marketing_opt_in
-- [ ] RLS policies: each user reads/writes only own rows
-
-### 2.2 Standards taxonomy (immutable reference)
-- [ ] `client_needs_categories` (RN/PN flag, name, % min, % max, parent)
-- [ ] `integrated_processes` (Nursing Process, Caring, Communication & Documentation, Teaching/Learning, Culture & Spirituality, Clinical Judgment)
-- [ ] `cjmm_steps` (1–6 with definitions)
-- [ ] `body_systems` (cardiac, respiratory, neuro, GI, GU, endocrine, hematologic, immune, integumentary, MSK, repro, mental health, multisystem)
-- [ ] `content_topics` (topic tree under body_systems)
-- [ ] `nursing_specialties` (med-surg, peds, OB, mental health, community, leadership/management, fundamentals, pharmacology, dosage calc)
-
-### 2.3 Question bank
-- [ ] `questions`: id, exam_target, item_type ENUM (mc, sata, fill_blank, ordered_response, hot_spot, audio, graphic, chart, ext_multi_response, ext_drag_drop, cloze_dropdown, enhanced_hotspot_highlight, matrix_mc, matrix_mr, bow_tie, trend), stem (markdown+JSON for rich layout), media_refs, scoring_rule ENUM (dichotomous, polytomous_plus_minus, polytomous_rationale), difficulty_logit, status (draft/review/published/retired), version, created_by, reviewed_by, source_citation, last_reviewed_at
-- [ ] `question_options` (for selectable items): id, question_id, label, is_correct, position_for_display (only used when not shuffled), feedback
-- [ ] `question_blanks` (cloze/fill): id, question_id, blank_key, accepted_values JSONB, units
-- [ ] `question_matrix_cells`: row_key, column_key, is_correct
-- [ ] `question_drag_targets` (bow-tie etc.): zone_key, accepted_option_ids
-- [ ] `question_trend_points`: time_index, payload JSONB
-- [ ] `question_tags` (M:M): question_id × {client_need, sub_category, integrated_process, cjmm_step, body_system, content_topic, specialty}
-- [ ] `question_rationales`: question_id, full_rationale_md, distractor_breakdown JSONB (per-option), linked_concept_ids ARRAY, sources JSONB
-- [ ] `case_studies`: id, title, scenario_md, exam_target, status
-- [ ] `case_study_items`: case_id, question_id, cjmm_step, sequence (1–6)
-
-### 2.4 Practice / attempts
-- [ ] `sessions`: id, user_id, mode (study/timed/cat_sim/case_study/flashcards/review), started_at, ended_at, ability_estimate, settings JSONB
-- [ ] `attempts`: id, session_id, user_id, question_id, started_at, submitted_at, response JSONB, awarded_points, max_points, scoring_rule, was_correct, confidence_self_rating (sure/unsure/guess), shuffle_seed, time_spent_ms
-- [ ] `flagged_questions`: user_id, question_id, reason, note
-- [ ] `bookmarked_questions`: user_id, question_id
-
-### 2.5 Spaced repetition (FSRS)
-- [ ] `cards`: id, user_id, content_kind (concept/drug/lab/mnemonic/question), content_ref, fsrs_state JSONB (stability, difficulty, due, last_review, lapses, reps), tags
-- [ ] `card_reviews`: card_id, user_id, reviewed_at, rating (again/hard/good/easy), elapsed_ms, scheduler_version
-- [ ] `fsrs_parameters`: user_id, w[17] vector, retention_target, last_optimized_at
-- [ ] Edge function: nightly FSRS optimizer per user (only after ≥ 200 reviews)
-
-### 2.6 Reference content
-- [ ] `drugs`: id, generic_name, brand_names ARRAY, drug_class, mechanism_md, indications_md, contraindications_md, nursing_considerations_md, adverse_effects_md, lab_monitoring ARRAY, peds_pearls_md, ob_pearls_md, geriatric_pearls_md, pregnancy_category, fda_label_url, last_verified_at, verified_by
-- [ ] `lab_values`: id, name, abbreviation, system, ref_range_low, ref_range_high, units, critical_low, critical_high, panic_values, clinical_meaning_md, related_drugs ARRAY, source
-- [ ] `mnemonics`: id, title, body_md, audio_url (song version), tags, body_system, source
-- [ ] `concepts`: id, title, summary_md, body_md, body_system, related_drugs, related_labs, related_questions ARRAY, prereqs ARRAY
-
-### 2.7 Analytics & gamification
-- [ ] `daily_stats`: user_id, date, minutes_studied, questions_answered, correct, accuracy_by_category JSONB, mastery_delta JSONB
-- [ ] `mastery`: user_id × tag (client_need, content_topic, cjmm_step) → score 0–1, last_updated, sample_size
-- [ ] `streaks`: user_id, current_days, best_days, last_active_date, freeze_credits
-- [ ] `achievements`: user_id × achievement_key, awarded_at
-- [ ] `weekly_digest`: user_id, week_start, payload JSONB, sent_at
-
-### 2.8 Billing
-- [ ] `subscriptions`: user_id, stripe_customer_id, plan, status, current_period_end, trial_end
-- [ ] `entitlements`: user_id, feature_key, granted_at, expires_at
-- [ ] `coupons`, `referrals`
-
-### 2.9 Operational
-- [ ] `audit_log`: actor, action, resource, before, after, at
-- [ ] `feature_flags` table (server-driven flags)
-- [ ] All tables: `created_at`, `updated_at` triggers
-- [ ] All user-data tables: RLS on by default; admin role bypass via service key only
-- [ ] Indexes for hot paths (attempts by user+session, mastery by user+tag, cards by user+due)
-- [ ] DB migrations under `/supabase/migrations`, applied via Supabase CLI
+- [x] `cjmm_steps` — six steps with definitions and example prompts
+- [x] `integrated_processes` — six processes
+- [x] `client_needs_categories` — RN and PN, parent + sub, with 2026 % bands
+      (PN bands and one RN pharm band flagged `verify_pdf` until NCSBN PDFs verified)
+- [x] `exam_constants` — CAT rules + passing logits (RN 0.00, PN −0.18)
+- [x] `item_type` enum — every NGN + classic type
+- [x] `scoring_rule` enum — dichotomous, polytomous +/−, polytomous rationale
+- [ ] Manually verify 2026 RN + PN PDFs and clear `verify_pdf` flags
+- [ ] Generate TypeScript types from the schema (Supabase CLI)
+- [ ] Apply migration locally (Supabase CLI) when content authoring begins
 
 ---
 
-## Phase 3 — Quiz Engine (with mandatory answer randomization)
+## Phase 3 — Quiz engine (IN PROGRESS)
 
-### 3.1 Item-type renderers (every NGN type, fully native)
-- [ ] **Multiple Choice** renderer + scorer (dichotomous)
-- [ ] **Multiple Response (SATA)** renderer + scorer (polytomous +/−, floor 0)
-- [ ] **Fill-in-the-Blank (calculation)** with unit-aware grading + acceptable rounding
-- [ ] **Ordered Response (drag-to-sequence)** renderer + scorer
-- [ ] **Hot Spot (image click)** renderer + scorer
-- [ ] **Audio** item player + scorer
-- [ ] **Graphic / Exhibit / Chart** items renderer
-- [ ] **Extended Multiple Response** renderer (longer option list) + +/− scorer
-- [ ] **Extended Drag and Drop** renderer (zones can have fewer/more slots than options)
-- [ ] **Cloze (Drop-Down)** renderer with multiple linked dropdowns + rationale-scoring (linked all-or-nothing)
-- [ ] **Enhanced Hot Spot / Highlight** (click-to-toggle words/phrases) + scorer
-- [ ] **Matrix Multiple Choice** (one per row) renderer + scorer
-- [ ] **Matrix Multiple Response** (multi per row) renderer + scorer
-- [ ] **Bow-Tie** (Actions to Take | Condition Most Likely | Parameters to Monitor) renderer + scorer with rationale-linked scoring
-- [ ] **Trend** item with multi-time-point chart + analysis prompt + scorer
-- [ ] **Stand-alone NGN** wrapper
-- [ ] **Case-Study (unfolding 6-step)** wrapper that progresses through CJMM steps and disables back-nav within case
+### Done
+- [x] `shuffleWithSeed` — deterministic mulberry32 + FNV-1a string hash
+- [x] `seedFromString` for non-numeric attempt IDs
+- [x] 8 unit tests including 5000-trial uniformity check
+- [x] Multiple Choice renderer with mandatory shuffle
+- [x] Gentle review panel: "Nicely held" / "Let's look at this together",
+      no alarm-red, sage / clay only
+- [x] Distractor breakdown for every option
+- [x] Source citations panel
+- [x] Working session at `/study` with one verified question
 
-### 3.2 Mandatory answer randomization
-- [ ] Per-attempt **shuffle seed** stored on `attempts.shuffle_seed`
-- [ ] Multiple choice & SATA: shuffle option order using seed
-- [ ] Extended drag/drop & bow-tie: shuffle option bank (NOT zone meaning)
-- [ ] Matrix: shuffle row order; column meaning preserved
-- [ ] Cloze: shuffle dropdown options within each blank
-- [ ] Ordered response: shuffle starting positions; preserve correct sequence in answer key
-- [ ] Highlight: shuffle is N/A (text fixed) — but shuffle distractor sentences if multi-paragraph
-- [ ] Hot spot: shuffle is N/A
-- [ ] Review mode: re-render with the same seed so she sees exactly what she saw
-- [ ] Unit test: same question rendered 10× → option position is uniformly distributed
+### Item-type renderers — to build
+- [ ] Multiple Response (SATA) with **polytomous +/− scoring** (floor 0)
+- [ ] Fill-in-the-Blank (calculation) with unit-aware grading + acceptable rounding
+- [ ] Ordered Response (drag-to-sequence)
+- [ ] Hot Spot (image click)
+- [ ] Audio item player
+- [ ] Graphic / Exhibit / Chart items
+- [ ] Extended Multiple Response (longer option list, +/− scoring)
+- [ ] Extended Drag and Drop (zones can have fewer/more slots than options)
+- [ ] Cloze (Drop-Down) with rationale-scoring (linked all-or-nothing)
+- [ ] Enhanced Hot Spot / Highlight (click words/phrases to toggle)
+- [ ] Matrix Multiple Choice (one per row)
+- [ ] Matrix Multiple Response (multi per row)
+- [ ] Bow-Tie (Actions / Condition / Parameters) with rationale-linked scoring
+- [ ] Trend item with multi-time-point chart + analysis prompt
+- [ ] Stand-alone NGN wrapper
+- [ ] Case-Study (unfolding 6-step) wrapper, no back-nav within case
 
-### 3.3 Scoring engine
-- [ ] Implement dichotomous scorer (0/1)
-- [ ] Implement polytomous +/− scorer with floor 0 per item
-- [ ] Implement rationale (linked all-or-nothing) scorer for cloze/matrix-row/bow-tie pairs
-- [ ] Time-spent capture per item
-- [ ] Confidence-rating capture (sure / unsure / guess) — never penalizes
-- [ ] Result computation: `awarded_points / max_points`, plus per-option correctness for review
+### Mandatory shuffle per type
+- [x] Multiple choice — option order shuffled per attempt
+- [ ] SATA — list order shuffled
+- [ ] Extended drag/drop & bow-tie — option bank shuffled (NOT zone meaning)
+- [ ] Matrix — row order shuffled (column meaning preserved)
+- [ ] Cloze — dropdown options shuffled within each blank
+- [ ] Ordered response — starting positions shuffled, key preserves correct sequence
 
-### 3.4 Practice modes
-- [ ] **Tutor mode** — untimed, immediate rationale, concept link, "drill similar" CTA (default for first 4 weeks per anxiety profile)
-- [ ] **Quiz mode** — fixed N items, optional timer, results at end
-- [ ] **Timed CAT-sim mode** — 85 min/150 max, 5h timer, simulated 95% CI termination via Rasch ability estimator
-- [ ] **Case-Study mode** — full unfolding 6-item case, no back-nav within case
-- [ ] **Weak-area mode** — sources items via mastery + FSRS due
-- [ ] **Daily Mix** — 25-question warm-up auto-generated each morning
-- [ ] **Review-mistakes mode** — only items where last attempt was incorrect or unsure
-
-### 3.5 Adaptive selection (CAT-lite)
-- [ ] Maintain ability estimate per user (Rasch / Elo hybrid)
-- [ ] Item difficulty calibrated from aggregate response data (cold-start: SME-rated)
-- [ ] Item selector: maximize information at current ability ± 0.3 logit
-- [ ] Content blueprint enforcement: respect 2026 Test Plan % bands across a session
-- [ ] CAT termination simulator: 95% CI rule, max-length, ROOT (for sim mode)
-
-### 3.6 Anxiety-aware UX rules (hard requirements)
-- [ ] No alarm-red anywhere; wrong = warm amber
-- [ ] No "INCORRECT" banner — copy is "Let's look at this together"
-- [ ] Optional break suggestion every 25 items (4-7-8 box breath modal)
+### Session UX
+- [ ] Session container that pulls items from FSRS-due + weak-area scheduler
+- [ ] Confidence rating (sure / unsure / guess) — never penalizing
 - [ ] Pause-and-resume on every session
-- [ ] Settings toggle: "hide score during session" (only revealed at end)
-- [ ] Settings toggle: "untimed only" mode
-- [ ] No streak-shaming copy ever ("Welcome back" instead of "Streak broken")
+- [ ] "Hide score during session" toggle
+- [ ] Optional 4-7-8 box-breath modal every 25 items
+- [ ] Replay-on-review (same shuffle seed)
+
+### Scoring engine
+- [x] Dichotomous scorer (0/1)
+- [ ] Polytomous +/− scorer with floor 0 per item
+- [ ] Rationale (linked all-or-nothing) scorer for cloze/matrix/bow-tie pairs
+- [ ] Time-spent capture per item
+- [ ] Confidence-rating capture
 
 ---
 
-## Phase 4 — Spaced Repetition (FSRS)
+## Phase 4 — State persistence (LOCAL-FIRST)
+
+> Decision: no auth, no server account. Her state lives in the browser and
+> optionally syncs across devices via a paired tokenless URL.
+
+- [ ] IndexedDB schema (Dexie or idb-keyval) — attempts, mastery, FSRS cards, settings
+- [ ] Single-source store in `/lib/store/` with typed selectors
+- [ ] Daily-stats roll-up (computed on read, persisted on session end)
+- [ ] Cross-device sync option (later — only if she wants phone↔laptop)
+
+---
+
+## Phase 5 — Spaced Repetition (FSRS)
 
 - [ ] Implement FSRS-5 scheduler in TypeScript (`/lib/fsrs/`)
-- [ ] Per-user weights with default w-vector + retention target 0.9 (raise to 0.95 within 30 days of test)
-- [ ] Card generation: every concept, drug, lab, mnemonic auto-creates a card on first encounter
-- [ ] Review UI: rating (again/hard/good/easy) with gentle copy
-- [ ] Daily review queue — capped at 100/day to avoid burnout
-- [ ] Optimizer edge function: re-fit weights nightly when reviews ≥ 200
+- [ ] Default w-vector + retention target 0.9 (raise to 0.95 within 30 days of test)
+- [ ] Card auto-creation on first concept/drug/lab/mnemonic encounter
+- [ ] Review UI: again/hard/good/easy with gentle copy
+- [ ] Daily review queue capped at 100 to avoid burnout
+- [ ] Optimizer pass once she's done ≥ 200 reviews
 - [ ] Leech detection — auto-suggest concept re-anchor + new mnemonic
-- [ ] Stats: retention by deck, predicted retention curve graph
-- [ ] Tests: scheduler unit tests vs published FSRS reference vectors
+- [ ] Retention curve graph
+- [ ] Tests vs published FSRS reference vectors
 
 ---
 
-## Phase 5 — Flashcards
+## Phase 6 — Flashcards
 
-- [ ] Standard front/back card type
-- [ ] **Cloze deletion** card type
-- [ ] **Image-occlusion** card type (cover anatomy/diagram regions)
-- [ ] **Audio (song-mnemonic)** card type with autoplay + replay (her #1 modality)
-- [ ] **Drug card** auto-generated from `drugs` table (mechanism / nursing implications / adverse effects sides)
-- [ ] **Lab card** auto-generated from `lab_values` table (range / clinical meaning / critical values)
-- [ ] Deck import (Anki .apkg → preserves cloze, audio, images)
-- [ ] Deck export
-- [ ] Deck sharing (read-only links)
-- [ ] Quick-add card from any rationale ("save concept to deck")
+- [ ] Front/back basic card
+- [ ] Cloze deletion card
+- [ ] Image-occlusion card (cover anatomy/diagram regions)
+- [ ] Audio (song-mnemonic) card with autoplay + replay
+- [ ] Drug card auto-generated from `drugs` table
+- [ ] Lab card auto-generated from `lab_values` table
+- [ ] Anki .apkg import (preserve cloze, audio, images)
+- [ ] Quick-add card from any rationale ("save concept")
 
 ---
 
-## Phase 6 — Content Coverage (mapped to 2026 Test Plan)
+## Phase 7 — Content (≥ 2,000 questions, ≥ 800 drugs, ≥ 250 labs)
 
-> Goal: ≥ 5,000 verified questions, ≥ 1,200 NGN items, ≥ 800 drugs, ≥ 250 labs, ≥ 300 concept cards.
-> Every item tagged: client_need, sub_category, integrated_process, cjmm_step, body_system, content_topic, specialty.
+> Goal: large enough to feel inexhaustible, small enough that every item is
+> hand-verified.
 
-### 6.1 Client Needs — RN
-- [ ] **Management of Care** (15–21%): delegation, scope of practice, advocacy, advance directives, informed consent, case management, quality improvement, ethical/legal practice
-- [ ] **Safety and Infection Control** (10–16%): standard/transmission precautions, hand hygiene, falls, restraints, error reporting, hazardous materials, ergonomics, surgical safety, security
-- [ ] **Health Promotion and Maintenance** (6–12%): development through life span, antepartum/intrapartum/postpartum/newborn, health screening, lifestyle choices, immunizations, self-care
-- [ ] **Psychosocial Integrity** (6–12%): abuse/neglect, behavioral interventions, chemical dependency, coping, cultural awareness, end of life, grief & loss, mental health, stress management, suicide ideation, therapeutic communication, therapeutic environment
-- [ ] **Basic Care and Comfort** (6–12%): assistive devices, elimination, mobility/immobility, nonpharm comfort, nutrition/oral hydration, personal hygiene, rest/sleep
-- [ ] **Pharmacological and Parenteral Therapies** (verify exact 2026 band): adverse effects, blood/blood products, central venous access, dosage calc, expected actions, med admin, parenteral/IV therapy, pharmacological pain, TPN
-- [ ] **Reduction of Risk Potential** (9–15%): changes/abnormalities in vital signs, diagnostic tests, lab values, potential complications of procedures, system-specific assessments, therapeutic procedures
-- [ ] **Physiological Adaptation** (11–17%): alterations in body systems, fluid/electrolyte imbalances, hemodynamics, illness management, medical emergencies, pathophysiology, unexpected response to therapies
+### Coverage — 2026 RN Test Plan
+- [ ] Management of Care (15–21%)
+- [ ] Safety & Infection Control (10–16%)
+- [ ] Health Promotion & Maintenance (6–12%)
+- [ ] Psychosocial Integrity (6–12%)
+- [ ] Basic Care & Comfort (6–12%)
+- [ ] Pharmacological & Parenteral Therapies (verify exact 2026 band)
+- [ ] Reduction of Risk Potential (9–15%)
+- [ ] Physiological Adaptation (11–17%)
 
-### 6.2 Client Needs — PN (parallel coverage with Coordinated Care replacing Mgmt of Care)
-- [ ] Coordinated Care, Safety & Infection Control
-- [ ] Health Promotion & Maintenance
-- [ ] Psychosocial Integrity
-- [ ] Basic Care & Comfort, Pharmacological Therapies, Reduction of Risk, Physiological Adaptation
-- [ ] PN-specific scope-of-practice questions
+### Tagging axes (every item must carry)
+- [ ] client_need + sub_category
+- [ ] integrated_process
+- [ ] cjmm_step
+- [ ] body_system
+- [ ] content_topic
+- [ ] specialty
 
-### 6.3 Integrated Processes — explicit coverage
-- [ ] Nursing Process (ADPIE) — at least one item per topic touching each phase
-- [ ] Caring — therapeutic presence, patient-centered care
-- [ ] Communication & Documentation — SBAR, charting standards, hand-off
-- [ ] Teaching/Learning — patient education at appropriate literacy level
-- [ ] Culture & Spirituality — culturally competent care
-- [ ] Clinical Judgment — every NGN case study tagged to one or more CJMM steps
+### Body-system + specialty depth (her hardest = patho + pharm)
+- [ ] Cardiac · Respiratory · Neuro · GI · GU/Renal · Endocrine
+- [ ] Hematologic · Immune · Integumentary · MSK
+- [ ] Repro / OB · Peds · Mental health · Oncology
+- [ ] Multisystem / shock states
 
-### 6.4 CJMM step tagging
-- [ ] Every NGN item tagged to at least one of: Recognize Cues, Analyze Cues, Prioritize Hypotheses, Generate Solutions, Take Actions, Evaluate Outcomes
-- [ ] Every full case-study has all 6 steps represented in sequence
-
-### 6.5 Body-system + specialty depth (her hardest = patho + pharm)
-- [ ] Cardiac (incl. EKG basics, ACS, HF, HTN, dysrhythmias, cardiogenic shock)
-- [ ] Respiratory (asthma, COPD, PNA, PE, ARDS, ventilator basics)
-- [ ] Neuro (stroke, TBI, seizures, ICP, MS, Parkinson, GBS, MG)
-- [ ] GI (GI bleed, IBD, cirrhosis, pancreatitis, bowel obstruction)
-- [ ] GU/Renal (AKI, CKD, dialysis, electrolytes, fluid balance, UTIs)
-- [ ] Endocrine (DM type 1/2, DKA/HHS, thyroid, adrenal, pituitary)
-- [ ] Hematologic (anemias, sickle cell, leukemias, lymphoma, DIC, ITP)
-- [ ] Immune (HIV, autoimmune, hypersensitivity)
-- [ ] Integumentary (burns rule of 9s, pressure injuries, wound care)
-- [ ] MSK (fractures, traction, joint replacement, compartment syndrome)
-- [ ] Repro / OB (antepartum complications, labor stages, postpartum, newborn)
-- [ ] Peds (growth/development, congenital, communicable diseases)
-- [ ] Mental health (mood, anxiety, psychotic, personality, eating, substance, suicide risk)
-- [ ] Oncology (chemo precautions, neutropenia, oncologic emergencies)
-- [ ] Multisystem / shock states (sepsis, hypovolemic, cardiogenic, distributive, obstructive)
-
-### 6.6 Pharmacology depth (paired with patho — her top need)
+### Pharmacology depth (paired with patho)
 - [ ] All major drug classes with prototype + key examples + nursing implications
-- [ ] High-alert medications (insulin, anticoagulants, opioids, electrolytes, chemo, sedatives)
-- [ ] Antidotes table (heparin↔protamine, warfarin↔vit K, opioids↔naloxone, benzo↔flumazenil, acetaminophen↔NAC, mag↔Ca gluconate, etc.)
+- [ ] High-alert medications
+- [ ] Antidotes table
 - [ ] Black box warnings list
 - [ ] Pregnancy/lactation safety per current FDA labeling
-- [ ] Dosage calc question bank (mL/hr, gtt/min, mcg/kg/min, mEq, peds weight-based, IV titration)
+- [ ] Dosage calc question bank
 
-### 6.7 Lab values depth
+### Lab values depth
 - [ ] Adult ranges with critical values and clinical meaning
-- [ ] Peds & geriatric variations called out
+- [ ] Peds + geriatric variations
 - [ ] ABG interpretation drills (ROME / tic-tac-toe)
 - [ ] CBC, CMP, coags, cardiac, lipid, LFTs, renal, thyroid, A1c, ABG, lactate, BNP, troponin
 
-### 6.8 Mnemonics & "song" library (her #1 modality)
-- [ ] Build mnemonic taxonomy (acronym, song, image-association, story, rhyme)
-- [ ] Source/license a curated set of public-domain or originally-composed song mnemonics
-- [ ] Audio player UI with replay, slow-mode, lyric scroll
+### Mnemonics & "song" library (her #1 modality)
+- [ ] Build mnemonic taxonomy (acronym, song, image, story, rhyme)
+- [ ] Audio player with replay, slow-mode, lyric scroll
 - [ ] Tag mnemonics to concepts, drugs, labs
-- [ ] At minimum 100 song mnemonics for top-tested topics
+- [ ] At least 100 song mnemonics for top-tested topics
 
-### 6.9 Reference tools (always-accessible)
-- [ ] Drug database UI (search, filter by class/system, "what nurses watch for" front-and-center)
-- [ ] Lab values reference UI (filter by system, ABG mini-tool, electrolyte tool)
+### Editorial workflow
+- [ ] Every item authored by an SME; reviewed by a second RN
+- [ ] Approval recorded with `last_reviewed_at`
+- [ ] Public errata record + in-app "Report an issue" on every item
+
+---
+
+## Phase 8 — Reference UI
+
+- [ ] Drug database UI (search, filter by class/system)
+- [ ] Lab values reference (filter by system, ABG mini-tool, electrolyte tool)
 - [ ] Equation/formula sheet (drug calc, IV calc, BMI, CrCl, MAP, pack-years)
 - [ ] Mnemonic library UI (browse, search, favorite)
-- [ ] Concept map browser (nodes link to questions/drugs/labs)
-
-### 6.10 Editorial workflow
-- [ ] Every item authored by an SME; reviewed by a second RN; approved by clinical lead
-- [ ] Approval recorded in `questions.reviewed_by` + `last_reviewed_at`
-- [ ] Quarterly content audit
-- [ ] Public errata page; in-app "Report an issue" on every item
+- [ ] Concept map browser
 
 ---
 
-## Phase 7 — Onboarding (shaped by her interview answers)
+## Phase 9 — Progress dashboard
 
-- [ ] Warm landing copy ("You don't have to do this alone")
-- [ ] Account creation (magic link first; Google second)
-- [ ] **Learning-style intake** (the same questions we asked, persisted to `learning_preferences`)
-- [ ] Exam target selection (RN / PN)
-- [ ] Test date selection (calendar — affects FSRS retention target + pacing)
-- [ ] Daily-time-budget selection (defaults to 480 min for our learner; adjustable)
-- [ ] Topic confidence self-rating (anchors initial mastery estimates)
-- [ ] Diagnostic mini-assessment (25 items, untimed, no score shown — only used to calibrate initial ability + weak-area surfacing)
-- [ ] Personalized first-week plan generated and shown
-- [ ] Tour overlay (skippable; never auto-replays)
-- [ ] Email: welcome + "what to do tomorrow" digest
-
----
-
-## Phase 8 — Analytics Dashboard
-
-- [ ] **Today** card: minutes studied, items done, accuracy, streak, "next best action"
-- [ ] **Weekly progress** view (visible, gentle): mastery deltas per Client Needs category
-- [ ] **Mastery by domain**: 8 RN Client Needs (or PN equivalents) with % bars and trend arrows
-- [ ] **Mastery by CJMM step**: which of the 6 cognitive steps is strongest/weakest (unique to NGN)
-- [ ] **Mastery by body system**: heatmap
-- [ ] **Predicted readiness**: probability of passing on test date (calibrated, never punitive — capped lower bound at "keep going")
-- [ ] **Time-on-task**: weekly minutes by category
-- [ ] **Confidence calibration**: how often "sure" answers were correct vs "guess" answers (metacognition)
-- [ ] **Question-type performance**: accuracy & average time per item type
-- [ ] **Drill-down**: click any tile → filtered review session
-- [ ] Export: weekly PDF report (encouraging tone; great for sharing with study partner)
-- [ ] Email digest: weekly progress email Sunday morning
+- [ ] Today card: minutes studied, items done, accuracy, "next best action"
+- [ ] Weekly progress: mastery deltas per Client Needs category
+- [ ] Mastery by domain: 8 categories with % bars and trend arrows
+- [ ] Mastery by CJMM step: which of the 6 cognitive steps is strongest/weakest
+- [ ] Mastery by body system: heatmap
+- [ ] Predicted readiness (calibrated, never punitive)
+- [ ] Time-on-task: weekly minutes by category
+- [ ] Confidence calibration: how often "sure" answers were correct
+- [ ] Question-type performance: accuracy + average time per item type
+- [ ] Drill-down: click any tile → filtered review session
 
 ---
 
-## Phase 9 — Gamification (encouraging, never punishing)
-
-- [ ] Streaks with **freeze credits** (1/week auto-granted; no shame for missing)
-- [ ] Achievement library (e.g., "First 100 questions", "Pharm Pro", "Cardiac Whisperer", "Patho Powerhouse")
-- [ ] Daily Mix completion = small confetti + kind affirmation
-- [ ] Weekly mastery levels (Sprout → Sapling → Tree → Forest — sage/lavender themed)
-- [ ] Optional study buddy mode (invite a friend — shared accountability, not leaderboards)
-- [ ] Mute toggle for all gamification (some learners hate it — must be 1 click off)
-
----
-
-## Phase 10 — Marketing site & Auth
-
-- [ ] Landing page (hero, learner-first copy, demo question, social proof, pricing teaser)
-- [ ] Pricing page
-- [ ] About / Story page
-- [ ] Blog (study tips, NCLEX changelog, "what's on the test")
-- [ ] Auth pages (sign-in, sign-up, forgot password, magic-link confirmation)
-- [ ] Account settings (profile, notifications, accessibility, billing)
-- [ ] Sitemap + robots.txt + OpenGraph images per page
-- [ ] SEO: structured data (Course, FAQ), llms.txt for AI crawlers
-
----
-
-## Phase 11 — Payments (Stripe)
-
-- [ ] Stripe account + products: monthly, quarterly (best value), one-time crash-course
-- [ ] Free tier (25 questions/day + flashcards + drug DB read-only)
-- [ ] 7-day full-access trial; no credit card required
-- [ ] Stripe Checkout integration
-- [ ] Stripe Customer Portal for self-service
-- [ ] Webhook → entitlements sync (signup, renewal, cancel, refund, dispute)
-- [ ] Coupon support; student discount
-- [ ] Refund policy: 14-day no-questions-asked
-- [ ] Receipts + tax handling (Stripe Tax)
-- [ ] Failed-payment dunning emails (gentle copy)
-
----
-
-## Phase 12 — Accessibility & Responsive
+## Phase 10 — A11y & responsive
 
 - [ ] WCAG 2.2 AA conformance audit (axe + manual)
-- [ ] Keyboard nav for every item type (incl. drag/drop has keyboard alt)
-- [ ] Screen-reader labels for matrix, cloze, bow-tie, hot-spot, highlight items
-- [ ] Reduced-motion mode (respects `prefers-reduced-motion`)
+- [ ] Keyboard nav for every item type (drag/drop has keyboard alt)
+- [ ] Screen-reader labels for matrix, cloze, bow-tie, hot-spot, highlight
+- [ ] Reduced-motion mode (already wired)
 - [ ] High-contrast mode
-- [ ] Font-size override (Small/Medium/Large/X-Large)
+- [ ] Font-size override (S / M / L / XL)
 - [ ] Color-blind safe palette (no red/green-only signaling)
-- [ ] Mobile-first layouts for: flashcards, single-question, mnemonic player, daily streak
-- [ ] Desktop-rich layouts for: dashboard, case studies, full timed sims, drug/lab tables
-- [ ] Tablet breakpoints (split-pane study)
+- [ ] Mobile-first layouts: flashcards, single-question, mnemonic player
+- [ ] Desktop-rich layouts: dashboard, case studies, reference tables
+- [ ] Tablet split-pane study
 - [ ] Touch-target minimum 44×44 px
 - [ ] iOS PWA install + offline flashcard pack
 
 ---
 
-## Phase 13 — Performance & Quality
+## Phase 11 — Performance
 
-- [ ] Core Web Vitals targets: LCP < 2.0s, CLS < 0.05, INP < 150ms (mid-tier mobile)
-- [ ] Image strategy: next/image, WebP/AVIF, lazy-load below fold
+- [ ] Core Web Vitals targets: LCP < 2.0s, CLS < 0.05, INP < 150ms
+- [ ] next/image, WebP/AVIF, lazy-load below fold
 - [ ] Route-level code splitting; question renderers lazy-loaded by item-type
-- [ ] DB query budget per route (no N+1; use `.select` projections)
 - [ ] React Query for client cache; SSR/RSC for first paint
-- [ ] Edge-function for high-traffic reads (drug/lab lookups)
-- [ ] Lighthouse CI in PRs (perf ≥ 90, a11y = 100, best-practices ≥ 95)
+- [ ] Lighthouse CI (perf ≥ 90, a11y = 100)
 
 ---
 
-## Phase 14 — Security & Privacy
+## Phase 12 — Privacy & legal disclaimers
 
-- [ ] Supabase RLS on every user-data table (review per migration)
-- [ ] Server-only service-role key (never shipped to client)
-- [ ] CSRF protection on mutations
-- [ ] Rate limits (per-IP + per-user) on auth + question submission
-- [ ] HIBP password check on signup
-- [ ] 2FA (TOTP) optional in account settings
-- [ ] Audit log for admin actions
-- [ ] Data export (GDPR/CCPA): one-click ZIP of user data
-- [ ] Account deletion: hard-delete with 30-day grace
-- [ ] Cookie consent (GDPR) banner; categorized cookies
-- [ ] Penetration test before public launch (OWASP Top 10)
-- [ ] Sentry PII scrubbing rules
-- [ ] Backups: daily PITR (Supabase), weekly off-site to S3-compatible
+> No accounts, no payments, so no GDPR data-sale concerns. Still need:
+- [x] Disclaimer line: "Not affiliated with NCSBN or Pearson VUE · Educational use only · Not medical advice"
+- [ ] Page-level disclaimer block linkable from footer (long-form)
+- [ ] Trademark callout: NCLEX® is registered to NCSBN
 
 ---
 
-## Phase 15 — Legal & Compliance
+## Phase 13 — Testing
 
-- [ ] **Disclaimer**: "Not affiliated with NCSBN, Pearson VUE, or any state board of nursing"
-- [ ] **Disclaimer**: "Educational content only — does not guarantee passing the NCLEX"
-- [ ] **Disclaimer**: "Drug, lab, and clinical content is for exam study only and is not medical advice; always follow institutional protocols and current guidelines in clinical practice"
-- [ ] Terms of Service (jurisdiction, refund policy, AUP, indemnity)
-- [ ] Privacy Policy (data categories, lawful basis, retention, sub-processors, contact)
-- [ ] Cookie Policy
-- [ ] DMCA / copyright notice
-- [ ] Accessibility statement
-- [ ] Trademark + brand usage: NCLEX® is a registered NCSBN trademark — use ® and disclaim affiliation
-- [ ] If marketing PH/Asia learners: confirm local consumer-protection compliance
-- [ ] Children-of-test-takers safeguard: 16+ age gate
-
----
-
-## Phase 16 — Testing
-
-- [ ] Unit tests: scoring engine (every item type × every scoring rule)
-- [ ] Unit tests: shuffler (statistical fairness across 10k samples)
-- [ ] Unit tests: FSRS scheduler vs reference vectors
-- [ ] Unit tests: ability estimator
-- [ ] Component tests: every renderer with golden inputs
-- [ ] Integration tests: full session flow (start → answer → score → review)
-- [ ] E2E (Playwright): onboarding → diagnostic → first study session → review → return next day
-- [ ] E2E: timed CAT-sim hits 95% CI termination correctly
+- [x] Unit: shuffler (8 tests, 5000-trial uniformity)
+- [ ] Unit: every scoring rule per item type
+- [ ] Unit: FSRS scheduler vs reference vectors
+- [ ] Component: every renderer with golden inputs
+- [ ] Integration: full session flow (start → answer → score → review)
+- [ ] E2E (Playwright): home → /study → answer → review → return next day
 - [ ] E2E: case-study disables back-nav and progresses through 6 steps
-- [ ] Accessibility tests: axe on every route in CI
-- [ ] Visual regression: Storybook + Chromatic
-- [ ] Load test: 1k concurrent users on question fetch + submit
-- [ ] Beta testing program: 20 nursing students, 4 weeks, structured feedback
+- [ ] axe a11y in CI
+- [ ] Visual regression (Storybook + Chromatic) — when component count justifies
+- [ ] Beta with her: 1-on-1 feedback loop, weekly polish pass
 
 ---
 
-## Phase 17 — Content QA
-
-- [ ] Every published question reviewed by ≥ 2 RNs (one as author, one as reviewer)
-- [ ] Clinical lead approves before publish
-- [ ] Quarterly re-review of all content for currency vs latest guidelines
-- [ ] User-reported errata triaged within 7 days
-- [ ] Auto-flag items with anomalous performance (e.g., < 20% accuracy across all users) for SME review
-- [ ] Content style guide enforced (sentence case, US English, gender-inclusive language, person-first language)
-
----
-
-## Phase 18 — Pre-Launch
-
-- [ ] Brand and copy review (full pass for warmth + accuracy + no AI slop)
-- [ ] Accessibility certification (third-party WCAG audit)
-- [ ] Legal review of ToS / Privacy / disclaimers
-- [ ] Pricing decision finalized; coupon plan
-- [ ] Customer support: Help Center articles, in-app chat (Crisp/Intercom), `support@` email
-- [ ] Status page (Statuspage / Vercel)
-- [ ] Backups verified by restore drill
-- [ ] On-call playbook + Sentry alerts → PagerDuty (or email)
-- [ ] Production secret review (rotate any test keys)
-- [ ] Final Lighthouse + axe + Sentry quiet hours
-- [ ] Soft-launch with 50 invited beta users
-- [ ] Capture testimonials from beta users (with consent)
-
----
-
-## Phase 19 — Launch
-
-- [ ] Public launch announcement (landing site, ProductHunt-style if relevant)
-- [ ] Email launch sequence to waitlist
-- [ ] Social: short demo videos of bow-tie, case study, mnemonic-song flashcard
-- [ ] Day-0 monitoring: Sentry, status page, support inbox
-- [ ] Day-7 retro; ship hotfixes
-- [ ] First user-success story write-up (with permission)
-
----
-
-## Phase 20 — Post-Launch (continuous)
-
-- [ ] Monthly content drop (≥ 100 new items)
-- [ ] Quarterly: re-fit FSRS defaults from population data
-- [ ] Quarterly: re-calibrate item difficulty from response data
-- [ ] Annual: full Test Plan re-audit (next major NCSBN update is 2029)
-- [ ] Iterate on dashboard insights based on user behavior
-- [ ] Add affiliate / school partnership program
-- [ ] Localization: Spanish UI (US/PR market) — content remains English (test is English)
-
----
-
-## Cross-Cutting Definition of Done
+## Cross-cutting Definition of Done
 
 A feature is **done** when ALL are true:
 - [ ] Typechecks (strict TS) and lints clean
 - [ ] Unit + component tests written and passing
 - [ ] Accessible (keyboard + screen reader + reduced motion verified)
-- [ ] Mobile and desktop layouts tested in real devices
-- [ ] No alarm-red, no shaming copy
+- [ ] Mobile + desktop layouts tested in real devices
+- [ ] No alarm-red, no shaming copy, no marketing-speak
 - [ ] Content cited (if it touches clinical facts)
-- [ ] Telemetry hooked up (key events tracked)
-- [ ] Doc updated in `/docs`
-- [ ] Reviewed and approved on PR
+- [ ] Doc updated in `/docs` if behavior is non-obvious
+- [ ] Skills protocol followed (relevant skills invoked)
 
 ---
 
-*Built for one specific person, with care. Every checkbox here exists because of something she said in her interview.*
+*Built for one specific person, with care.*
