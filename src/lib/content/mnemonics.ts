@@ -1,10 +1,9 @@
-import type { BeatStyle } from "@/lib/audio/beat-player";
-
 export type MnemonicKind = "acronym" | "sentence" | "image" | "song";
 
 export interface Mnemonic {
   id: string;
   title: string;
+  /** kind === "song" renders as a rhyme card (no audio — just catchy text). */
   kind: MnemonicKind;
   /** Display label (free text). */
   topic: string;
@@ -18,21 +17,9 @@ export interface Mnemonic {
   /** Per-letter or per-line breakdown for acronyms and sentences. */
   lines?: { key: string; meaning: string }[];
 
-  // ---- Song mnemonics ----
-  /** Genre / style label, e.g. "Slow trap", "R&B / neo-soul", "Gospel call & response". */
-  tune?: string;
-  /** Beat style for in-browser playback. The audio is synthesized live. */
-  beatStyle?: BeatStyle;
-  /** Each entry is one stanza or section, with line breaks preserved. */
+  // ---- Rhyme mnemonics (kind === "song") ----
+  /** Each entry is one stanza, with line breaks preserved. Read it aloud — no audio. */
   lyrics?: string[];
-  /**
-   * Pre-engineered Suno V5 style-box prompt — vocals first, genre, BPM,
-   * key instruments. Paste into Suno's "Style of Music" field along with
-   * the lyrics (section-tagged) to render a real produced track once,
-   * then drop the resulting MP3 URL into the "Add real beat" field on the
-   * card to make this song play that real audio every time.
-   */
-  sunoStyle?: string;
 
   source?: string;
 }
@@ -285,9 +272,6 @@ export const mnemonics: Mnemonic[] = [
     topic: "Diabetic ketoacidosis",
     topicSlug: "dka",
     body: "Rap mnemonic for DKA recognition and treatment order.",
-    tune: "Rap · slow trap, ~85 BPM",
-    beatStyle: "trap-85",
-    sunoStyle: "Female lead, half-rapped half-spoken, clinical and confident delivery, vocals prominent. Slow trap, 85 BPM, A minor. 808 sub-bass, crisp hi-hat rolls, atmospheric pad. Modern hip-hop production.",
     lyrics: [
 `[Hook]
 Sugar in the sky, fruity breath, Kussmaul deep
@@ -323,9 +307,6 @@ Fluids first, insulin slow, watch the K don't sleep
     topic: "ABG interpretation",
     topicSlug: "abg",
     body: "Rap-cypher for the four ABG patterns.",
-    tune: "Rap · boom-bap, ~92 BPM",
-    beatStyle: "boom-bap-92",
-    sunoStyle: "Female lead, classic 90s boom-bap rap delivery, clear articulation, vocals up front. Boom-bap hip-hop, 92 BPM, C minor. Dusty drums, jazzy upright bass, vinyl crackle, head-nod groove.",
     lyrics: [
 `[Hook]
 R-O-M-E — that's how I read a gas
@@ -356,9 +337,6 @@ Respiratory Opposite, Metabolic Equal — that's the math
     topic: "Sepsis hour-1 bundle",
     topicSlug: "sepsis",
     body: "Drill-style bars for the Surviving Sepsis Campaign hour-1 bundle.",
-    tune: "Rap · drill, ~140 BPM",
-    beatStyle: "drill-140",
-    sunoStyle: "Female lead, tight UK drill flow, confident attitude, vocals crisp and prominent. UK drill, 140 BPM, F minor. Sliding 808 bass, sharp hi-hats, dark melodic stabs, minor-key piano.",
     lyrics: [
 `[Hook]
 Hour one, hour one — get the bundle done
@@ -389,9 +367,6 @@ Lactate, cultures, antibiotics, fluids — every one
     topic: "Adrenal disorders",
     topicSlug: "adrenal",
     body: "R&B verse comparing the two adrenal opposites.",
-    tune: "R&B · neo-soul, slow groove ~70 BPM",
-    beatStyle: "neo-soul-70",
-    sunoStyle: "Smooth female lead, sung neo-soul vocals, contemplative and warm delivery, vocals up front. Neo-soul R&B, 70 BPM, F major. Rhodes electric piano, soft brushed drums, warm upright bass.",
     lyrics: [
 `[Verse 1 — Cushing]
 Too much cortisol, body keeps the salt and weight
@@ -422,9 +397,6 @@ Addison gives it BACK — sodium, sugar, BP flat
     topic: "Medication safety",
     topicSlug: "medication-safety",
     body: "Gospel call-and-response for safe medication administration.",
-    tune: "Gospel · call & response, hand-clap tempo",
-    beatStyle: "gospel-piano",
-    sunoStyle: "Female lead with female choir response, gospel call-and-response, uplifting and worshipful delivery. Contemporary gospel, 80 BPM, C major (C-F-G-C). Acoustic piano, hand claps, soft tambourine, warm Hammond organ pad.",
     lyrics: [
 `[Hook]
 Right patient — two identifiers, every single time
@@ -455,9 +427,6 @@ Right drug, right dose, right route, right time
     topic: "Heart failure",
     topicSlug: "heart-failure",
     body: "R&B verse for left- vs right-sided heart failure.",
-    tune: "R&B · neo-soul, mid-tempo ~80 BPM",
-    beatStyle: "neo-soul-80",
-    sunoStyle: "Warm sung female lead, soulful neo-soul vocals, mid-tempo groove. Neo-soul R&B, 80 BPM, G minor. Rhodes electric piano, soft drums, walking bass, light tambourine.",
     lyrics: [
 `[Verse 1 — Left]
 Left side backs up, blood goes to the lungs
