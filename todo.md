@@ -12,6 +12,11 @@
 
 ---
 
+## 🚨 BUILD DIRECTIVE
+> **This app MUST be built using the Claude Code skills below.** Every phase, every feature, every commit, every commit message, every UI component, every test, every legal doc, every marketing page — produced with the relevant skills invoked. The skills are how we hit the "no AI slop, polished consumer-grade" bar the user demanded. **Building without the skills = build failure.**
+>
+> When starting work on any phase or task: open this file → match the work to the per-phase map → invoke each listed skill via the `Skill` tool → THEN write code. Do not improvise. Skills first, code second.
+
 ## ⚙️ Skills Usage Protocol (READ BEFORE EVERY PROMPT — MANDATORY)
 
 > **HARD RULE — NON-NEGOTIABLE:** Skills MUST be used on **every build action** and **every prompt** in this project. Before any tool call, before any file edit, before any commit, before any message back to the user — scan this protocol, identify every applicable skill, and invoke them via the `Skill` tool. Skipping skills is a process failure.
@@ -97,7 +102,7 @@
 | Phase | Required skills (in addition to default-on) |
 |---|---|
 | Phase 0 (Foundations) | deep-research, browser, session-start-hook, update-config, doc-coauthoring |
-| Phase 1 (Design system) | frontend-design (mandatory), brand-guidelines, theme-factory, canvas-design, algorithmic-art, web-artifacts-builder |
+| Phase 1 (Design system) | frontend-design (mandatory), ui-ux-pro-max, ui-design-system, ux-researcher-designer, apple-hig-expert, brand-guidelines, theme-factory, canvas-design, algorithmic-art, web-artifacts-builder, epic-design |
 | Phase 2 (DB schema) | security-review, graphify (for ER + content graph), xlsx (seed sheets) |
 | Phase 3 (Quiz engine) | frontend-design, tdd-workflow (heavy), pair-programming, agentdb-memory-patterns, webapp-testing |
 | Phase 4 (FSRS) | tdd-workflow, agentdb-memory-patterns, reasoningbank-agentdb |
