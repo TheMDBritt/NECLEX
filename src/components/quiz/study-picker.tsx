@@ -12,11 +12,9 @@ import {
   filterItems,
   itemTypeLabel,
   specialtyLabel,
-  topicLabel,
   uniqueBodySystems,
   uniqueItemTypes,
   uniqueSpecialties,
-  uniqueTopics,
   type StudyFilter,
 } from "@/lib/content/filters";
 import type { ItemType, Question } from "@/lib/types/question";
@@ -28,31 +26,33 @@ interface StudyPickerProps {
 
 export function StudyPicker({ bank }: StudyPickerProps) {
   const [filter, setFilter] = useState<StudyFilter>(emptyFilter);
-  const [size, setSize] = useState<5 | 10 | 25 | 0>(10); // 0 = all
+  const [size, setSize] = useState<5 | 10 | 25 | 0>(10);
   const [started, setStarted] = useState(false);
-  /**
-   * Per-session randomization seed. Bumped every time the user clicks
-   * "Start set" so the question ORDER is different on each new attempt.
-   */
   const [orderSeed, setOrderSeed] = useState<string>(() => `seed-${Date.now()}`);
 
   const allSpecialties = useMemo(() => uniqueSpecialties(bank), [bank]);
   const allBodySystems = useMemo(() => uniqueBodySystems(bank), [bank]);
   const allItemTypes = useMemo(() => uniqueItemTypes(bank), [bank]);
-  const allTopics = useMemo(() => uniqueTopics(bank), [bank]);
 
   const matched = useMemo(() => filterItems(bank, filter), [bank, filter]);
   const effectiveSize = size === 0 ? matched.length : Math.min(size, matched.length);
 
-  /**
-   * Shuffle the QUESTION order on every session start. Combined with the
-   * per-question answer-shuffle (in each renderer), this means a returning
-   * learner sees different questions in a different order with different
-   * answer positions every single time.
-   */
-  const session = useMemo(() => {
-    return shuffleWithSeed(matched, orderSeed).slice(0, effectiveSize);
-  }, [matched, effectiveSize, orderSeed]);
+  const session = useMemo(
+    () => shuffleWithSeed(matched, orderSeed).slice(0, effectiveSize),
+    [matched, effectiveSize, orderSeed],
+  );
+
+  function start() {
+    setOrderSeed(`seed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    clearSession();
+    setStarted(true);
+  }
+
+  function quickStart(specialty?: string) {
+    setFilter(specialty ? { ...emptyFilter, specialties: [specialty] } : emptyFilter);
+    setSize(10);
+    requestAnimationFrame(start);
+  }
 
   if (started) {
     return (
@@ -61,7 +61,7 @@ export function StudyPicker({ bank }: StudyPickerProps) {
           onClick={() => setStarted(false)}
           className="mb-6 inline-flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint hover:text-ink"
         >
-          <span aria-hidden>←</span> Change set
+          <span aria-hidden>←</span> Pick a different set
         </button>
         <StudySession items={session} />
       </div>
@@ -71,46 +71,59 @@ export function StudyPicker({ bank }: StudyPickerProps) {
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <Eyebrow>Build a set</Eyebrow>
+        <Eyebrow>Study</Eyebrow>
         <h1 className="font-display text-[clamp(2rem,4.4vw,3.25rem)] font-light leading-[1.08] tracking-[-0.025em] text-ink">
-          Pick what you want to study.
+          Pick a set.
         </h1>
-        <p className="max-w-[58ch] font-body text-[1rem] leading-[1.6] text-ink-soft">
-          Filter the bank, choose how many, then start. Leave a filter empty to include everything.
+        <p className="font-body text-[1rem] leading-[1.6] text-ink-soft">
+          Tap a quick start, or build your own below.
         </p>
       </header>
 
-      <FilterGroup
-        label="Question type"
-        all={allItemTypes.map((t) => ({ value: t, label: itemTypeLabel(t) }))}
-        selected={filter.itemTypes}
-        onChange={(itemTypes) => setFilter((f) => ({ ...f, itemTypes: itemTypes as ItemType[] }))}
-      />
-
-      <FilterGroup
-        label="Specialty"
-        all={allSpecialties.map((s) => ({ value: s, label: specialtyLabel(s) }))}
-        selected={filter.specialties}
-        onChange={(specialties) => setFilter((f) => ({ ...f, specialties }))}
-      />
-
-      <FilterGroup
-        label="Body system"
-        all={allBodySystems.map((s) => ({ value: s, label: bodySystemLabel(s) }))}
-        selected={filter.bodySystems}
-        onChange={(bodySystems) => setFilter((f) => ({ ...f, bodySystems }))}
-      />
-
-      <FilterGroup
-        label="Topic"
-        all={allTopics.map((t) => ({ value: t, label: topicLabel(t) }))}
-        selected={filter.topics}
-        onChange={(topics) => setFilter((f) => ({ ...f, topics }))}
-      />
+      <section className="space-y-4">
+        <Eyebrow withRule={false}>Quick start</Eyebrow>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => quickStart()}
+            className="rounded-full bg-ink px-5 py-2.5 font-body text-[14px] tracking-[0.005em] text-paper transition-colors duration-200 hover:bg-indigo-deep"
+          >
+            10 random
+          </button>
+          {allSpecialties.map((s) => (
+            <button
+              key={s}
+              onClick={() => quickStart(s)}
+              className="rounded-full border border-ink/15 bg-paper px-5 py-2.5 font-body text-[14px] tracking-[0.005em] text-ink-soft transition-colors duration-200 hover:border-ink/40 hover:text-ink"
+            >
+              10 in {specialtyLabel(s)}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="space-y-4">
-        <Eyebrow withRule={false}>Set size</Eyebrow>
-        <div className="flex flex-wrap gap-2">
+        <Eyebrow withRule={false}>Or build your own</Eyebrow>
+
+        <FilterRow
+          label="Body system"
+          all={allBodySystems.map((s) => ({ value: s, label: bodySystemLabel(s) }))}
+          selected={filter.bodySystems}
+          onChange={(bodySystems) => setFilter((f) => ({ ...f, bodySystems }))}
+        />
+
+        <FilterRow
+          label="Question type"
+          all={allItemTypes.map((t) => ({ value: t, label: itemTypeLabel(t) }))}
+          selected={filter.itemTypes}
+          onChange={(itemTypes) =>
+            setFilter((f) => ({ ...f, itemTypes: itemTypes as ItemType[] }))
+          }
+        />
+
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+            How many
+          </span>
           {[5, 10, 25, 0].map((n) => (
             <button
               key={n}
@@ -126,56 +139,47 @@ export function StudyPicker({ bank }: StudyPickerProps) {
             </button>
           ))}
         </div>
-      </section>
 
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-ink/10 pt-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-faint">
-          {matched.length} match{matched.length === 1 ? "" : "es"} · {effectiveSize} in this set
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          {(filter.itemTypes.length > 0 ||
-            filter.specialties.length > 0 ||
-            filter.bodySystems.length > 0 ||
-            filter.topics.length > 0) && (
-            <button
-              onClick={() => setFilter(emptyFilter)}
-              className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint hover:text-ink"
+        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-ink/10 pt-6">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-faint">
+            {matched.length} match{matched.length === 1 ? "" : "es"} · {effectiveSize} in this set
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {(filter.bodySystems.length > 0 || filter.itemTypes.length > 0) && (
+              <button
+                onClick={() => setFilter(emptyFilter)}
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint hover:text-ink"
+              >
+                Reset
+              </button>
+            )}
+            <Button
+              onClick={start}
+              disabled={effectiveSize === 0}
+              arrow
+              aria-disabled={effectiveSize === 0}
             >
-              Reset filters
-            </button>
-          )}
-          <Button
-            onClick={() => {
-              // Bump the randomization seed so the question ORDER reshuffles,
-              // and clear any stale persisted session.
-              setOrderSeed(`seed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
-              clearSession();
-              setStarted(true);
-            }}
-            disabled={effectiveSize === 0}
-            arrow
-            aria-disabled={effectiveSize === 0}
-          >
-            Start set
-          </Button>
-        </div>
-      </footer>
+              Start set
+            </Button>
+          </div>
+        </footer>
+      </section>
     </div>
   );
 }
 
-interface FilterGroupProps {
+interface FilterRowProps {
   label: string;
   all: { value: string; label: string }[];
   selected: string[];
   onChange: (next: string[]) => void;
 }
 
-function FilterGroup({ label, all, selected, onChange }: FilterGroupProps) {
+function FilterRow({ label, all, selected, onChange }: FilterRowProps) {
   if (all.length === 0) return null;
   return (
-    <section className="space-y-4">
-      <Eyebrow withRule={false}>{label}</Eyebrow>
+    <div className="space-y-2">
+      <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">{label}</p>
       <div className="flex flex-wrap gap-2">
         {all.map((opt) => {
           const isSelected = selected.includes(opt.value);
@@ -189,7 +193,7 @@ function FilterGroup({ label, all, selected, onChange }: FilterGroupProps) {
               }
               aria-pressed={isSelected}
               className={cn(
-                "rounded-full border px-4 py-1.5 font-body text-[13.5px] tracking-[0.005em] transition-colors duration-200",
+                "rounded-full border px-3.5 py-1.5 font-body text-[13px] tracking-[0.005em] transition-colors duration-200",
                 isSelected
                   ? "border-ink bg-ink text-paper"
                   : "border-ink/15 bg-paper text-ink-soft hover:border-ink/40 hover:text-ink",
@@ -200,6 +204,6 @@ function FilterGroup({ label, all, selected, onChange }: FilterGroupProps) {
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

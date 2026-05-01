@@ -9,10 +9,21 @@ export interface Mnemonic {
   /** Topic slug for filtering (kebab-case). */
   topicSlug: string;
   body: string;
-  /** Lines, where each line corresponds to one letter (acronyms) or one beat (songs). */
-  lines: { key: string; meaning: string }[];
   /** Why this matters clinically. */
   clinical: string;
+
+  // ---- Non-song mnemonics (acronym / sentence / image) ----
+  /** Per-letter or per-line breakdown for acronyms and sentences. */
+  lines?: { key: string; meaning: string }[];
+
+  // ---- Song mnemonics ----
+  /** Genre / style label, e.g. "Slow trap", "R&B / neo-soul", "Gospel call & response". */
+  tune?: string;
+  /** Honest note about the audio: a beat to search for so she can layer her voice on top. */
+  beatSuggestion?: string;
+  /** Each entry is one stanza or section, with line breaks preserved. */
+  lyrics?: string[];
+
   source?: string;
 }
 
@@ -251,5 +262,185 @@ export const mnemonics: Mnemonic[] = [
       { key: "4", meaning: "Onset > 4.5 hours ago, or unknown last-known-well past window" },
     ],
     clinical: "Treat hypertension first; if BP cannot be brought below threshold, tPA is held.",
+  },
+
+  // ===== Song-style mnemonics — real lyrics, adult genres ======
+  // I cannot ship audio files. Each one names a genre/tempo and suggests a
+  // free "type beat" search you can use to layer the lyrics on top.
+
+  {
+    id: "song-dka-bars",
+    title: "DKA Bars",
+    kind: "song",
+    topic: "Diabetic ketoacidosis",
+    topicSlug: "dka",
+    body: "Rap mnemonic for DKA recognition and treatment order.",
+    tune: "Rap · slow trap, ~85 BPM",
+    beatSuggestion: "Search YouTube for \"free slow trap type beat 85 BPM\" — pick one with a steady hi-hat and let the verse breathe over it.",
+    lyrics: [
+`[Hook]
+Sugar to the sky, breath go fruity, Kussmaul deep
+Fluids in first, insulin slow, watch the K don't sleep`,
+`[Verse]
+Type-one come in like the world on fire
+Acidotic blood and the ketones higher
+Anion gap wide open, pH down low
+Hour one we drop normal saline, let it flow
+Then the regular insulin running on the line
+Glucose drop slow, ‘bout a hundred a time
+When the sugar hit two-fifty add the dextrose
+Switch the bag, keep the drip — that's how the protocol go
+Potassium follows insulin into the cell
+Replace before you push it or they bottoming out, hell
+Bicarb only if the pH crash beneath seven
+Otherwise it's fluids, lytes, slow recovery from heaven`,
+    ],
+    clinical:
+      "Order matters in DKA: fluids first to expand volume, insulin drip second to close the anion gap, potassium replacement once K trends down, dextrose added when glucose ≤ 250 to keep the drip running. Bicarb only for severe acidosis (pH < 7.0).",
+  },
+
+  {
+    id: "song-rome-flow",
+    title: "ROME Flow",
+    kind: "song",
+    topic: "ABG interpretation",
+    topicSlug: "abg",
+    body: "Rap-cypher for the four ABG patterns.",
+    tune: "Rap · boom-bap, ~92 BPM",
+    beatSuggestion: "Search \"free 90s boom bap type beat 92 BPM\" — pick something with a head-nod groove so each line lands clean.",
+    lyrics: [
+`[Hook]
+R-O-M-E, that's the way I read a gas
+Respiratory opposite, metabolic equal — that's the path`,
+`[Verse 1 — respiratory]
+pH up, CO2 down, that's respiratory alkalosis
+Hyperventilating panic, that's the diagnosis
+pH down, CO2 up, respiratory acidosis
+COPD, the airway tight, that's the prognosis`,
+`[Verse 2 — metabolic]
+pH up, bicarb up, metabolic alkalosis
+Vomit, NG suction — give the volume back, the dose is
+pH down, bicarb down, metabolic acidosis
+DKA, sepsis, kidney shutting up shop`,
+    ],
+    clinical:
+      "ROME = Respiratory Opposite, Metabolic Equal. Step one — is pH up or down? Step two — does CO2 move opposite (respiratory) or HCO3 move with pH (metabolic)? Step three — look for compensation.",
+  },
+
+  {
+    id: "song-sepsis-hour-one",
+    title: "Hour One",
+    kind: "song",
+    topic: "Sepsis hour-1 bundle",
+    topicSlug: "sepsis",
+    body: "Drill-style bars for the Surviving Sepsis Campaign hour-1 bundle.",
+    tune: "Rap · drill, ~140 BPM",
+    beatSuggestion: "Search \"free UK drill type beat\" — sliding 808s, sharp hi-hats. Snap each bar on the beat.",
+    lyrics: [
+`[Hook]
+Hour one, hour one — get the bundle done
+Lactate, cultures, antibiotics, fluids, every one`,
+`[Verse]
+Lactate first to see how bad the perfusion gone
+Cultures BEFORE antibiotics, never the wrong way 'round
+Broad spectrum hit them fast inside the first hour
+Thirty mils per kilo crystalloid bring the BP power
+MAP under sixty-five start a pressor on the line
+Norepi first, vaso second when the first one fall behind
+Reassess the lactate, reassess the perfusion
+Septic shock kill quick if you sleep on the conclusion`,
+    ],
+    clinical:
+      "Surviving Sepsis Campaign hour-1: measure lactate, blood cultures BEFORE antibiotics, broad-spectrum antibiotics, 30 mL/kg crystalloid for hypotension or lactate ≥ 4, vasopressors during/after fluids if MAP < 65. Norepinephrine is the first-line pressor.",
+  },
+
+  {
+    id: "song-cushing-addison-rnb",
+    title: "Cushing's vs Addison",
+    kind: "song",
+    topic: "Adrenal disorders",
+    topicSlug: "adrenal",
+    body: "R&B verse comparing the two adrenal opposites.",
+    tune: "R&B · neo-soul, slow groove ~70 BPM",
+    beatSuggestion: "Search \"free neo-soul Rhodes type beat 70 BPM\" — soft drums, electric piano. Sing the verses, speak the bridge.",
+    lyrics: [
+`[Verse — Cushing]
+Too much cortisol, the body keep the salt and weight
+Moon face rising slow, the striae stretch and fade
+Sugar running high, the skin so thin it tears
+Mood swings, BP up — that's Cushing in the air`,
+`[Hook]
+Cushing's got it ALL — sodium, sugar, BP, fat
+Addison gave it BACK — sodium, sugar, BP flat`,
+`[Verse — Addison]
+Cortisol gone low, the body lose the salt and tone
+Bronze pigmentation deep, electrolytes alone
+Hyperkalemia rise, glucose drop down low
+Crisis: steroid push, IV fluids let it flow`,
+    ],
+    clinical:
+      "Cushing = excess cortisol → high Na, high glucose, high BP, weight gain, moon face, striae, thin skin. Addison = deficient cortisol → low Na, low glucose, low BP, weight loss, hyperpigmentation, hyperkalemia. Addisonian crisis is a medical emergency — IV hydrocortisone, fluids, glucose.",
+  },
+
+  {
+    id: "song-five-rights-gospel",
+    title: "Five Rights",
+    kind: "song",
+    topic: "Medication safety",
+    topicSlug: "medication-safety",
+    body: "Gospel call-and-response for safe medication administration.",
+    tune: "Gospel · call & response, hand-clap tempo",
+    beatSuggestion: "Search \"free gospel piano type beat\" or sing it a cappella — built like a praise-and-worship call between leader and choir.",
+    lyrics: [
+`[Caller] Right patient!
+[Choir] Two identifiers, every single time
+[Caller] Right drug!
+[Choir] Triple-check the label, never break the line
+[Caller] Right dose!
+[Choir] Math it twice with weight if peds is in the bed
+[Caller] Right route!
+[Choir] Don't push it IV if it's PO instead
+[Caller] Right time!
+[Choir] Within thirty minutes, document the read`,
+`[Bridge — extension]
+Right reason — what the medicine is FOR
+Right response — reassess after the dose
+Right documentation — chart it, close the loop
+Right to refuse — honor the patient, every time`,
+    ],
+    clinical:
+      "The five core rights are patient, drug, dose, route, time. The expanded list adds reason, documentation, response, and right to refuse — together the 'nine rights' some institutions teach.",
+  },
+
+  {
+    id: "song-hf-sides-rnb",
+    title: "Heart Failure Sides",
+    kind: "song",
+    topic: "Heart failure",
+    topicSlug: "heart-failure",
+    body: "R&B verse for left- vs right-sided heart failure.",
+    tune: "R&B · neo-soul, mid-tempo ~80 BPM",
+    beatSuggestion: "Search \"free Rhodes neo-soul type beat 80 BPM\" — let the bridge land softer than the verses.",
+    lyrics: [
+`[Verse — Left]
+Left side back up, push it to the lungs
+Crackle in the bases, sit them up, oxygen come
+Pink frothy sputum tell you edema in the air
+S-3 gallop knocking soft, a sound you can't compare
+Orthopnea climbing, three pillows for the night
+Furosemide IV slow, get the volume off the right`,
+`[Bridge]
+Backwards, backwards — the blood don't flow forward
+Backwards, backwards — the body know what's coming`,
+`[Verse — Right]
+Right side back up, push it to the body
+JVD jugulars rising — tell you something's not coppy
+Liver tender, ascites, peripheral edema slow
+Weight up two pounds in a day, the fluid finding home
+Daily weights at dawn, low-sodium dish
+Spironolactone working soft — that aldosterone wish`,
+    ],
+    clinical:
+      "Left = Lungs (crackles, dyspnea, orthopnea, pink frothy sputum, S3). Right = Rest of body (JVD, peripheral edema, hepatomegaly, ascites, weight gain). Most chronic HF eventually becomes biventricular but the starting side tells the story.",
   },
 ];
