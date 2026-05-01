@@ -219,14 +219,13 @@ function SessionSummary({
 
   return (
     <article className="rounded-2xl border border-ink/10 bg-paper-deep/40 p-7 sm:p-10">
-      <Eyebrow>Session complete</Eyebrow>
+      <Eyebrow>Set complete</Eyebrow>
       <h2 className="mt-4 max-w-[18ch] font-display text-[clamp(1.875rem,4vw,3rem)] font-light leading-[1.1] tracking-[-0.025em] text-ink">
-        That was {summaryAdjective(accuracy)} work.
+        {accuracy}% — {earned} of {possible} points.
       </h2>
-      <p className="mt-5 max-w-[58ch] font-body text-[15.5px] leading-[1.65] text-ink-soft">
-        You earned {earned} of {possible} possible points across {total} item
-        {total === 1 ? "" : "s"} in about {minutes} minute{minutes === 1 ? "" : "s"}.
-        The misses are saved — they'll come back gently in tomorrow's mix.
+      <p className="mt-5 max-w-[58ch] font-body text-[15.5px] leading-[1.6] text-ink-soft">
+        {fullyCorrect} of {total} item{total === 1 ? "" : "s"} fully correct in {minutes} minute
+        {minutes === 1 ? "" : "s"}.
       </p>
 
       <dl className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -264,10 +263,10 @@ function SessionSummary({
 
       <div className="mt-10 flex flex-wrap items-center gap-4">
         <Button onClick={onRestart} arrow>
-          Begin another set
+          Start another set
         </Button>
         <Button href="/" variant="ghost" size="sm">
-          <span className="link-draw">Back to today</span>
+          <span className="link-draw">Home</span>
         </Button>
       </div>
     </article>
@@ -305,9 +304,3 @@ function SessionSkeleton({ total }: { total: number }) {
   );
 }
 
-function summaryAdjective(accuracy: number): string {
-  if (accuracy >= 90) return "really fine";
-  if (accuracy >= 75) return "steady";
-  if (accuracy >= 50) return "honest";
-  return "humble";
-}

@@ -76,7 +76,7 @@ export function MultipleResponse({ question, shuffleSeed, onSubmit }: MultipleRe
         </Eyebrow>
         {!isSubmitted ? (
           <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
-            One or more answers · partial credit
+            Select all that apply
           </p>
         ) : null}
       </header>
@@ -147,7 +147,7 @@ export function MultipleResponse({ question, shuffleSeed, onSubmit }: MultipleRe
           <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
             {selected.size === 0
               ? "Choose at least one"
-              : `${selected.size} selected · keep going or submit`}
+              : `${selected.size} selected`}
           </p>
         </div>
       ) : (
@@ -180,10 +180,10 @@ function SataResultPanel({
       : "clay";
 
   const headline = result.isFullyCorrect
-    ? "Every piece in place."
+    ? "Correct."
     : result.awardedPoints > 0
-      ? "Most of it — let's tighten the rest."
-      : "Let's look at this together.";
+      ? "Partially correct."
+      : "Incorrect.";
 
   const tag =
     result.isFullyCorrect
@@ -205,7 +205,7 @@ function SataResultPanel({
       <header className="flex items-center justify-between gap-4">
         <p
           className={cn(
-            "font-display text-[1.375rem] font-light italic leading-[1.3]",
+            "font-display text-[1.25rem] font-light leading-[1.3]",
             tone === "sage" && "text-sage-800",
             tone === "lavender" && "text-lavender-800",
             tone === "clay" && "text-clay-800",

@@ -66,7 +66,7 @@ export function MultipleChoice({ question, shuffleSeed, onSubmit }: MultipleChoi
         </Eyebrow>
         {!isSubmitted ? (
           <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
-            One answer · take your time
+            One answer
           </p>
         ) : null}
       </header>
@@ -134,7 +134,7 @@ export function MultipleChoice({ question, shuffleSeed, onSubmit }: MultipleChoi
             Submit answer
           </Button>
           <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
-            Untimed · you can change your mind
+            You can change your mind before submitting
           </p>
         </div>
       ) : (
@@ -176,11 +176,11 @@ function ResultPanel({
       <header className="flex items-center justify-between gap-4">
         <p
           className={cn(
-            "font-display text-[1.375rem] font-light italic leading-[1.3]",
+            "font-display text-[1.25rem] font-light leading-[1.3]",
             isCorrect ? "text-sage-800" : "text-clay-800",
           )}
         >
-          {isCorrect ? "Nicely held." : "Let's look at this together."}
+          {isCorrect ? "Correct." : "Incorrect."}
         </p>
         <span
           className={cn(
@@ -188,14 +188,14 @@ function ResultPanel({
             isCorrect ? "bg-sage-600 text-paper" : "bg-clay-600 text-paper",
           )}
         >
-          {isCorrect ? "Correct" : "Not quite"}
+          {isCorrect ? "1 / 1" : "0 / 1"}
         </span>
       </header>
 
       {!isCorrect && selectedOption ? (
-        <p className="mt-4 max-w-[60ch] font-body text-[15px] leading-[1.65] text-ink">
-          You chose <strong className="font-semibold">{selectedOption.label}</strong>. The strongest
-          answer here is{" "}
+        <p className="mt-4 max-w-[60ch] font-body text-[15px] leading-[1.6] text-ink">
+          You chose <strong className="font-semibold">{selectedOption.label}</strong>. The correct
+          answer is{" "}
           <strong className="font-semibold text-sage-800">{correctOption.label}</strong>.
         </p>
       ) : null}
