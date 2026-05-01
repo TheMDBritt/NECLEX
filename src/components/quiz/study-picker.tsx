@@ -5,15 +5,18 @@ import { Button } from "@/components/primitives/button";
 import { Eyebrow } from "@/components/primitives/eyebrow";
 import { StudySession } from "@/components/quiz/study-session";
 import { clearSession } from "@/lib/store/session";
+import { shuffleWithSeed } from "@/lib/shuffle";
 import {
   bodySystemLabel,
   emptyFilter,
   filterItems,
   itemTypeLabel,
   specialtyLabel,
+  topicLabel,
   uniqueBodySystems,
   uniqueItemTypes,
   uniqueSpecialties,
+  uniqueTopics,
   type StudyFilter,
 } from "@/lib/content/filters";
 import type { ItemType, Question } from "@/lib/types/question";
@@ -27,17 +30,29 @@ export function StudyPicker({ bank }: StudyPickerProps) {
   const [filter, setFilter] = useState<StudyFilter>(emptyFilter);
   const [size, setSize] = useState<5 | 10 | 25 | 0>(10); // 0 = all
   const [started, setStarted] = useState(false);
+  /**
+   * Per-session randomization seed. Bumped every time the user clicks
+   * "Start set" so the question ORDER is different on each new attempt.
+   */
+  const [orderSeed, setOrderSeed] = useState<string>(() => `seed-${Date.now()}`);
 
   const allSpecialties = useMemo(() => uniqueSpecialties(bank), [bank]);
   const allBodySystems = useMemo(() => uniqueBodySystems(bank), [bank]);
   const allItemTypes = useMemo(() => uniqueItemTypes(bank), [bank]);
+  const allTopics = useMemo(() => uniqueTopics(bank), [bank]);
 
   const matched = useMemo(() => filterItems(bank, filter), [bank, filter]);
   const effectiveSize = size === 0 ? matched.length : Math.min(size, matched.length);
 
+  /**
+   * Shuffle the QUESTION order on every session start. Combined with the
+   * per-question answer-shuffle (in each renderer), this means a returning
+   * learner sees different questions in a different order with different
+   * answer positions every single time.
+   */
   const session = useMemo(() => {
-    return matched.slice(0, effectiveSize);
-  }, [matched, effectiveSize]);
+    return shuffleWithSeed(matched, orderSeed).slice(0, effectiveSize);
+  }, [matched, effectiveSize, orderSeed]);
 
   if (started) {
     return (
@@ -86,6 +101,13 @@ export function StudyPicker({ bank }: StudyPickerProps) {
         onChange={(bodySystems) => setFilter((f) => ({ ...f, bodySystems }))}
       />
 
+      <FilterGroup
+        label="Topic"
+        all={allTopics.map((t) => ({ value: t, label: topicLabel(t) }))}
+        selected={filter.topics}
+        onChange={(topics) => setFilter((f) => ({ ...f, topics }))}
+      />
+
       <section className="space-y-4">
         <Eyebrow withRule={false}>Set size</Eyebrow>
         <div className="flex flex-wrap gap-2">
@@ -113,7 +135,8 @@ export function StudyPicker({ bank }: StudyPickerProps) {
         <div className="flex flex-wrap items-center gap-3">
           {(filter.itemTypes.length > 0 ||
             filter.specialties.length > 0 ||
-            filter.bodySystems.length > 0) && (
+            filter.bodySystems.length > 0 ||
+            filter.topics.length > 0) && (
             <button
               onClick={() => setFilter(emptyFilter)}
               className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-faint hover:text-ink"
@@ -123,7 +146,9 @@ export function StudyPicker({ bank }: StudyPickerProps) {
           )}
           <Button
             onClick={() => {
-              // Clear any stale persisted session so the new set always starts fresh.
+              // Bump the randomization seed so the question ORDER reshuffles,
+              // and clear any stale persisted session.
+              setOrderSeed(`seed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
               clearSession();
               setStarted(true);
             }}

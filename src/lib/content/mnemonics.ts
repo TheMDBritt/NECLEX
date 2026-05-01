@@ -4,7 +4,10 @@ export interface Mnemonic {
   id: string;
   title: string;
   kind: MnemonicKind;
+  /** Display label (free text). */
   topic: string;
+  /** Topic slug for filtering (kebab-case). */
+  topicSlug: string;
   body: string;
   /** Lines, where each line corresponds to one letter (acronyms) or one beat (songs). */
   lines: { key: string; meaning: string }[];
@@ -19,6 +22,7 @@ export const mnemonics: Mnemonic[] = [
     title: "ROME",
     kind: "acronym",
     topic: "ABG interpretation",
+    topicSlug: "abg",
     body: "Acid-base direction at a glance.",
     lines: [
       { key: "R", meaning: "Respiratory" },
@@ -34,6 +38,7 @@ export const mnemonics: Mnemonic[] = [
     title: "MONA",
     kind: "acronym",
     topic: "Acute MI initial care",
+    topicSlug: "acs",
     body: "First moves for suspected MI in the ED (sequence varies by protocol).",
     lines: [
       { key: "M", meaning: "Morphine (severe pain unresponsive to nitrates)" },
@@ -49,6 +54,7 @@ export const mnemonics: Mnemonic[] = [
     title: "Cushing's triad",
     kind: "sentence",
     topic: "Increased intracranial pressure",
+    topicSlug: "icp",
     body: "Late, life-threatening sign of rising ICP.",
     lines: [
       { key: "1", meaning: "Bradycardia" },
@@ -62,7 +68,8 @@ export const mnemonics: Mnemonic[] = [
     id: "5ps-compartment",
     title: "5 Ps of compartment syndrome",
     kind: "acronym",
-    topic: "Limb assessment after fracture or crush injury",
+    topic: "Limb assessment after fracture",
+    topicSlug: "compartment-syndrome",
     body: "Findings that demand immediate action.",
     lines: [
       { key: "P", meaning: "Pain — out of proportion, worsens with passive stretch" },
@@ -78,7 +85,8 @@ export const mnemonics: Mnemonic[] = [
     id: "4ts-pph",
     title: "4 Ts of postpartum hemorrhage",
     kind: "acronym",
-    topic: "Causes of PPH",
+    topic: "Postpartum hemorrhage",
+    topicSlug: "postpartum-hemorrhage",
     body: "Categories of postpartum bleeding to assess in order.",
     lines: [
       { key: "T", meaning: "Tone — uterine atony (most common cause)" },
@@ -94,6 +102,7 @@ export const mnemonics: Mnemonic[] = [
     title: "SLUDGEM",
     kind: "acronym",
     topic: "Cholinergic toxicity",
+    topicSlug: "toxicology",
     body: "Signs of muscarinic excess (organophosphate exposure, neostigmine overdose).",
     lines: [
       { key: "S", meaning: "Salivation" },
@@ -110,7 +119,8 @@ export const mnemonics: Mnemonic[] = [
     id: "tract",
     title: "TRACT",
     kind: "acronym",
-    topic: "Things that lower lithium levels (raise toxicity risk)",
+    topic: "Lithium toxicity risk factors",
+    topicSlug: "lithium",
     body: "Why lithium toxicity sneaks up on stable patients.",
     lines: [
       { key: "T", meaning: "Thiazide diuretics" },
@@ -123,22 +133,24 @@ export const mnemonics: Mnemonic[] = [
       "Teach a steady-sodium, steady-fluid diet. New BP medication or a stomach bug can push level into toxicity.",
   },
   {
-    id: "bee-sting",
-    title: "BEES — left vs right HF",
+    id: "hf-sides",
+    title: "Left vs right heart failure",
     kind: "sentence",
-    topic: "Heart failure side localization",
+    topic: "Heart failure",
+    topicSlug: "heart-failure",
     body: "Where the back-pressure shows up.",
     lines: [
-      { key: "L", meaning: "Left → Lungs (pulmonary congestion: crackles, dyspnea, pink frothy sputum)" },
+      { key: "L", meaning: "Left → Lungs (pulmonary congestion: crackles, dyspnea, pink frothy sputum, S3)" },
       { key: "R", meaning: "Right → Rest of body (JVD, peripheral edema, hepatomegaly, ascites)" },
     ],
     clinical: "Most chronic HF eventually becomes biventricular, but the side starting tells the story.",
   },
   {
-    id: "speed-shock",
+    id: "five-rights",
     title: "Five rights of medication",
     kind: "acronym",
     topic: "Medication safety",
+    topicSlug: "medication-safety",
     body: "Verified at every administration.",
     lines: [
       { key: "1", meaning: "Right patient (two identifiers)" },
@@ -154,16 +166,11 @@ export const mnemonics: Mnemonic[] = [
     title: "Trousseau and Chvostek",
     kind: "sentence",
     topic: "Hypocalcemia",
+    topicSlug: "electrolytes",
     body: "Two physical findings that confirm low calcium.",
     lines: [
-      {
-        key: "Trousseau",
-        meaning: "BP cuff inflated 20 mm Hg above systolic for ~3 min → carpal spasm",
-      },
-      {
-        key: "Chvostek",
-        meaning: "Tap on facial nerve in front of ear → ipsilateral facial twitch",
-      },
+      { key: "Trousseau", meaning: "BP cuff inflated 20 mm Hg above systolic for ~3 min → carpal spasm" },
+      { key: "Chvostek", meaning: "Tap on facial nerve in front of ear → ipsilateral facial twitch" },
     ],
     clinical:
       "Common after thyroidectomy or in vitamin D deficiency; treat with IV calcium gluconate for severe symptoms.",
@@ -173,6 +180,7 @@ export const mnemonics: Mnemonic[] = [
     title: "ADPIE",
     kind: "acronym",
     topic: "Nursing process",
+    topicSlug: "nursing-process",
     body: "The frame every NCLEX item is built around.",
     lines: [
       { key: "A", meaning: "Assessment" },
@@ -189,6 +197,7 @@ export const mnemonics: Mnemonic[] = [
     title: "SBAR",
     kind: "acronym",
     topic: "Hand-off communication",
+    topicSlug: "communication",
     body: "Standardized framework for clinical hand-offs.",
     lines: [
       { key: "S", meaning: "Situation — who, where, what is happening right now" },
@@ -197,5 +206,50 @@ export const mnemonics: Mnemonic[] = [
       { key: "R", meaning: "Recommendation / Request — what you need from the listener" },
     ],
     clinical: "Used for shift report, calling a provider, or transferring care.",
+  },
+  {
+    id: "fast",
+    title: "FAST",
+    kind: "acronym",
+    topic: "Stroke recognition",
+    topicSlug: "stroke",
+    body: "Quick screen for acute stroke.",
+    lines: [
+      { key: "F", meaning: "Face — ask the person to smile; one side droops?" },
+      { key: "A", meaning: "Arms — ask them to raise both arms; one drifts down?" },
+      { key: "S", meaning: "Speech — ask them to repeat a phrase; slurred or odd?" },
+      { key: "T", meaning: "Time — note onset and call 911 immediately" },
+    ],
+    clinical:
+      "Time of onset determines tPA eligibility (typically within 3–4.5 hours). Document last-known-well, not just symptom recognition.",
+  },
+  {
+    id: "addisons-cushings",
+    title: "Addison vs Cushing",
+    kind: "sentence",
+    topic: "Adrenal disorders",
+    topicSlug: "adrenal",
+    body: "Opposites of the cortisol axis.",
+    lines: [
+      { key: "Addison", meaning: "Adrenal insufficiency — low cortisol, low Na, high K, hypotension, hyperpigmentation, weight loss" },
+      { key: "Cushing", meaning: "Adrenal excess — high cortisol, high Na, low K, hypertension, moon face, weight gain, striae" },
+    ],
+    clinical:
+      "Addisonian crisis = life-threatening shock; treat with IV hydrocortisone, fluids, glucose. Sudden steroid withdrawal can trigger it.",
+  },
+  {
+    id: "tpa-contraindications",
+    title: "Stroke tPA — quick rule-outs",
+    kind: "sentence",
+    topic: "Stroke",
+    topicSlug: "stroke",
+    body: "Before tPA, screen for these absolute contraindications.",
+    lines: [
+      { key: "1", meaning: "Active bleeding or recent major surgery / trauma (< 14 days)" },
+      { key: "2", meaning: "Hemorrhagic stroke now or any history of intracranial bleed" },
+      { key: "3", meaning: "BP > 185/110 (treat first if possible)" },
+      { key: "4", meaning: "Onset > 4.5 hours ago, or unknown last-known-well past window" },
+    ],
+    clinical: "Treat hypertension first; if BP cannot be brought below threshold, tPA is held.",
   },
 ];

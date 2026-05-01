@@ -4,12 +4,14 @@ export interface StudyFilter {
   itemTypes: ItemType[]; // empty = any
   specialties: string[]; // empty = any
   bodySystems: string[]; // empty = any
+  topics: string[]; // empty = any
 }
 
 export const emptyFilter: StudyFilter = {
   itemTypes: [],
   specialties: [],
   bodySystems: [],
+  topics: [],
 };
 
 const SPECIALTY_LABEL: Record<string, string> = {
@@ -81,6 +83,19 @@ export function uniqueItemTypes(items: readonly Question[]): ItemType[] {
   return Array.from(new Set(items.map((q) => q.itemType))).sort();
 }
 
+export function uniqueTopics(items: readonly Question[]): string[] {
+  return Array.from(
+    new Set(items.map((q) => q.tags.contentTopic).filter((t): t is string => Boolean(t))),
+  ).sort();
+}
+
+export function topicLabel(slug: string): string {
+  // Friendly-ize a kebab-case slug: "heart-failure" -> "Heart failure"
+  if (!slug) return slug;
+  const sentence = slug.replace(/-/g, " ");
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
+
 export function filterItems(items: readonly Question[], filter: StudyFilter): Question[] {
   return items.filter((q) => {
     if (filter.itemTypes.length > 0 && !filter.itemTypes.includes(q.itemType)) return false;
@@ -92,6 +107,11 @@ export function filterItems(items: readonly Question[], filter: StudyFilter): Qu
     if (
       filter.bodySystems.length > 0 &&
       (!q.tags.bodySystem || !filter.bodySystems.includes(q.tags.bodySystem))
+    )
+      return false;
+    if (
+      filter.topics.length > 0 &&
+      (!q.tags.contentTopic || !filter.topics.includes(q.tags.contentTopic))
     )
       return false;
     return true;
