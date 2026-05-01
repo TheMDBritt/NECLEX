@@ -22,13 +22,33 @@
 - ⭐ **tdd-workflow** — mock-first, outside-in test development on any new logic
 - ⭐ **pair-programming** — driver/navigator mode with continuous review for non-trivial features
 - ⭐ **security-review** (built-in) — run before merging any change that touches auth, RLS, payments, or user data
+- ⭐ **webapp-testing** — Playwright-based UI verification on any frontend change before declaring done
 
 ### Planning, research, and discovery
 - **deep-research** — any prompt that requires multi-source research (NCLEX standards lookups, drug/lab verification, clinical guideline checks)
 - **graphify** — when mapping content relationships (concept ↔ drug ↔ lab ↔ question), turn into knowledge graphs
 - **browser** — any prompt requiring live web verification (NCSBN PDFs, FDA labels, AHA/CDC guidelines)
-- **skill-builder** — when a recurring workflow emerges, codify it as a new skill
+- **skill-creator** — preferred for creating/editing/measuring skills (supersedes skill-builder when both apply)
+- **skill-builder** — fallback skill scaffolding
 - **session-start-hook** — when configuring CI/test runners for web sessions
+- **mcp-builder** — if we expose study data (drugs, labs, study state) via an MCP server for IDE/extension integrations
+- **doc-coauthoring** — drafting docs, specs, decision records, content style guides
+
+### Frontend, design, and content production
+- **frontend-design** — MANDATORY on any UI work — prevents generic AI aesthetic, drives the polished Notion/Linear-grade look
+- **brand-guidelines** — when applying or auditing brand colors/typography across artifacts
+- **theme-factory** — applying preset or custom themes to artifacts (slides, docs, landing pages, dashboards)
+- **canvas-design** — original visual art (PNG/PDF) for marketing posters, concept illustrations
+- **algorithmic-art** — generative/p5.js visuals (e.g., onboarding hero, brand motion)
+- **web-artifacts-builder** — multi-component prototype artifacts (claude.ai-style) for design exploration before building in Next.js
+
+### Document & content I/O
+- **pdf** — generating weekly digest PDFs, candidate-style readiness reports, exporting study summaries; OCR if scanning legacy nursing notes
+- **docx** — Word exports of progress reports, study guides
+- **pptx** — SME training decks, beta-program briefings, school-partnership materials
+- **xlsx** — content authoring (question banks), drug/lab seed sheets, content QA logs, beta feedback tracking
+- **internal-comms** — drafting status updates, launch announcements, incident reports
+- **slack-gif-creator** — quick demo GIFs for social/launch (low priority)
 
 ### Multi-agent / large-scope work
 - **swarm-orchestration** — any multi-step task involving ≥ 3 parallel workstreams (e.g., authoring 100 questions across body systems)
@@ -65,27 +85,27 @@
 ### Per-phase invocation map
 | Phase | Required skills (in addition to default-on) |
 |---|---|
-| Phase 0 (Foundations) | deep-research, browser, session-start-hook, update-config |
-| Phase 1 (Design system) | (default-on only; no skill replaces taste — review with `simplify`) |
-| Phase 2 (DB schema) | security-review, graphify (for ER + content graph) |
-| Phase 3 (Quiz engine) | tdd-workflow (heavy), pair-programming, agentdb-memory-patterns |
+| Phase 0 (Foundations) | deep-research, browser, session-start-hook, update-config, doc-coauthoring |
+| Phase 1 (Design system) | frontend-design (mandatory), brand-guidelines, theme-factory, canvas-design, algorithmic-art, web-artifacts-builder |
+| Phase 2 (DB schema) | security-review, graphify (for ER + content graph), xlsx (seed sheets) |
+| Phase 3 (Quiz engine) | frontend-design, tdd-workflow (heavy), pair-programming, agentdb-memory-patterns, webapp-testing |
 | Phase 4 (FSRS) | tdd-workflow, agentdb-memory-patterns, reasoningbank-agentdb |
-| Phase 5 (Flashcards) | agentdb-vector-search (for semantic deck search) |
-| Phase 6 (Content coverage) | swarm-orchestration, deep-research, browser, graphify |
-| Phase 7 (Onboarding) | tdd-workflow |
-| Phase 8 (Analytics) | reasoningbank-intelligence, agentdb-vector-search |
-| Phase 9 (Gamification) | tdd-workflow |
-| Phase 10 (Marketing) | (default-on) |
-| Phase 11 (Stripe) | security-review, tdd-workflow |
-| Phase 12 (A11y/Responsive) | verification-quality (≥ AA pass required) |
-| Phase 13 (Performance) | agentdb-optimization (if vector search is in path), verification-quality |
+| Phase 5 (Flashcards) | frontend-design, agentdb-vector-search (semantic deck search), webapp-testing |
+| Phase 6 (Content coverage) | swarm-orchestration, deep-research, browser, graphify, xlsx (question bank authoring), pdf (clinical source extraction) |
+| Phase 7 (Onboarding) | frontend-design, tdd-workflow, webapp-testing |
+| Phase 8 (Analytics) | frontend-design, reasoningbank-intelligence, agentdb-vector-search, pdf (weekly digest export) |
+| Phase 9 (Gamification) | frontend-design, tdd-workflow, canvas-design (achievement art) |
+| Phase 10 (Marketing) | frontend-design, brand-guidelines, canvas-design, algorithmic-art, theme-factory, internal-comms (launch comms) |
+| Phase 11 (Stripe) | security-review, tdd-workflow, frontend-design (checkout UI), webapp-testing |
+| Phase 12 (A11y/Responsive) | verification-quality (≥ AA pass required), webapp-testing |
+| Phase 13 (Performance) | agentdb-optimization (if vector search is in path), verification-quality, webapp-testing |
 | Phase 14 (Security) | security-review (mandatory), update-config |
-| Phase 15 (Legal) | deep-research |
-| Phase 16 (Testing) | tdd-workflow, verification-quality |
-| Phase 17 (Content QA) | swarm-orchestration, deep-research, browser |
-| Phase 18 (Pre-launch) | security-review, github-release-management, verification-quality |
-| Phase 19 (Launch) | github-release-management, github-workflow-automation |
-| Phase 20 (Post-launch) | reasoningbank-intelligence, agentdb-learning |
+| Phase 15 (Legal) | deep-research, doc-coauthoring, docx (formal policy docs) |
+| Phase 16 (Testing) | tdd-workflow, verification-quality, webapp-testing |
+| Phase 17 (Content QA) | swarm-orchestration, deep-research, browser, xlsx (errata logs) |
+| Phase 18 (Pre-launch) | security-review, github-release-management, verification-quality, webapp-testing, pptx (beta briefing deck) |
+| Phase 19 (Launch) | github-release-management, github-workflow-automation, internal-comms, slack-gif-creator (demo gifs), canvas-design (social art) |
+| Phase 20 (Post-launch) | reasoningbank-intelligence, agentdb-learning, internal-comms (status updates), pdf (monthly reports) |
 
 ### Per-prompt protocol
 On receiving a prompt, before tool calls:
