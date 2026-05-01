@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Mnemonic, MnemonicKind } from "@/lib/content/mnemonics";
 import { BeatPlayer } from "@/lib/audio/beat-player";
+import {
+  clearCustomBeatUrl,
+  getCustomBeatUrl,
+  setCustomBeatUrl,
+} from "@/lib/audio/custom-beats";
 import { cn } from "@/lib/utils";
 
 interface MnemonicReferenceProps {
@@ -227,14 +232,25 @@ function SongCard({ m }: { m: Mnemonic }) {
 }
 
 /**
- * Plays an actual synthesized beat (Web Audio API) under the lyrics. The
- * lyrics are read by the browser's text-to-speech voice on top of the beat.
- * No audio files are loaded — drums and bass are generated live.
+ * Plays the song with the lyrics on top.
+ *
+ * Source priority:
+ *   1. A custom MP3 URL the learner has pasted in for this song (saved in
+ *      localStorage) — plays via <audio> element.
+ *   2. The built-in synth beat (Web Audio API kick/snare/hat/bass) tied to
+ *      the song's beatStyle.
+ *
+ * Either way, the lyrics are layered on top via the device's TTS voice.
  */
 function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
   const [supported, setSupported] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [customUrl, setCustomUrlState] = useState<string>("");
+  const [editingUrl, setEditingUrl] = useState(false);
+  const [draftUrl, setDraftUrl] = useState("");
+
   const playerRef = useRef<BeatPlayer | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
@@ -242,14 +258,27 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
     const audioOk = BeatPlayer.isSupported();
     const ttsOk = "speechSynthesis" in window;
     setSupported(audioOk || ttsOk);
+
+    // Hydrate any saved custom URL for this song
+    const saved = getCustomBeatUrl(mnemonic.id);
+    if (saved) {
+      setCustomUrlState(saved);
+      setDraftUrl(saved);
+    }
+
     return () => {
       // Stop everything if the card unmounts
       if (playerRef.current) playerRef.current.stop();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [mnemonic.id]);
 
   function buildLyricsText(): string {
     const parts: string[] = [mnemonic.title];
@@ -261,14 +290,30 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
     if (!supported || playing) return;
     setPlaying(true);
 
-    // Start beat
-    if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
+    // Backing track — prefer the custom MP3 URL, fall back to the synth
+    if (customUrl) {
+      try {
+        const audio = new Audio(customUrl);
+        audio.loop = true;
+        audio.volume = 0.65;
+        audio.crossOrigin = "anonymous";
+        audioRef.current = audio;
+        await audio.play();
+      } catch {
+        // If the custom URL fails (CORS, 404, etc.), fall back to the synth
+        if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
+          const player = new BeatPlayer();
+          playerRef.current = player;
+          await player.start(mnemonic.beatStyle, 0.55);
+        }
+      }
+    } else if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
       const player = new BeatPlayer();
       playerRef.current = player;
       await player.start(mnemonic.beatStyle, 0.55);
     }
 
-    // Start TTS layered on top
+    // TTS lyrics layered on top
     if ("speechSynthesis" in window) {
       const synth = window.speechSynthesis;
       const utter = new SpeechSynthesisUtterance(buildLyricsText());
@@ -293,11 +338,31 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
       playerRef.current.stop();
       playerRef.current = null;
     }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
     utterRef.current = null;
     setPlaying(false);
+  }
+
+  function saveDraft() {
+    const trimmed = draftUrl.trim();
+    if (trimmed) setCustomBeatUrl(mnemonic.id, trimmed);
+    else clearCustomBeatUrl(mnemonic.id);
+    setCustomUrlState(trimmed);
+    setEditingUrl(false);
+  }
+
+  function clear() {
+    clearCustomBeatUrl(mnemonic.id);
+    setCustomUrlState("");
+    setDraftUrl("");
+    setEditingUrl(false);
   }
 
   if (!supported) {
@@ -309,20 +374,82 @@ function PlaySongButton({ mnemonic }: { mnemonic: Mnemonic }) {
   }
 
   return (
-    <button
-      onClick={() => (playing ? stop() : play())}
-      type="button"
-      className={cn(
-        "mt-5 inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
-        playing
-          ? "border-lavender-600 bg-lavender-600 text-paper"
-          : "border-ink/20 bg-paper text-ink hover:border-ink/40",
-      )}
-      aria-pressed={playing}
-    >
-      <span aria-hidden>{playing ? "■" : "▶"}</span>
-      {playing ? "Stop" : "Play song"}
-    </button>
+    <div className="mt-5 space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={() => (playing ? stop() : play())}
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200",
+            playing
+              ? "border-lavender-600 bg-lavender-600 text-paper"
+              : "border-ink/20 bg-paper text-ink hover:border-ink/40",
+          )}
+          aria-pressed={playing}
+        >
+          <span aria-hidden>{playing ? "■" : "▶"}</span>
+          {playing ? "Stop" : "Play song"}
+        </button>
+
+        <button
+          onClick={() => setEditingUrl((v) => !v)}
+          type="button"
+          className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-ink-faint hover:text-ink"
+        >
+          {customUrl ? "Change beat" : "Add real beat"}
+        </button>
+      </div>
+
+      {customUrl && !editingUrl ? (
+        <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+          Backing track: your linked MP3
+        </p>
+      ) : null}
+
+      {editingUrl ? (
+        <div className="space-y-2 rounded-lg border border-ink/10 bg-paper p-4">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint">
+            Paste a free MP3 URL — Pixabay, SoundCloud download, anywhere.
+            The track loops under the lyrics. Saved on this device only.
+          </p>
+          <input
+            type="url"
+            value={draftUrl}
+            onChange={(e) => setDraftUrl(e.target.value)}
+            placeholder="https://example.com/beat.mp3"
+            className="w-full rounded-lg border border-ink/15 bg-paper px-3 py-2 font-body text-[14px] text-ink placeholder:text-ink-faint focus:border-ink/40 focus:outline-none"
+          />
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="rounded-full bg-ink px-4 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.22em] text-paper transition-colors duration-200 hover:bg-indigo-deep"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDraftUrl(customUrl);
+                setEditingUrl(false);
+              }}
+              className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-ink-faint hover:text-ink"
+            >
+              Cancel
+            </button>
+            {customUrl ? (
+              <button
+                type="button"
+                onClick={clear}
+                className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.22em] text-clay-600 hover:text-clay-800"
+              >
+                Use synth beat
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
