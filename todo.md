@@ -118,6 +118,33 @@
 | Phase 19 (Launch) | github-release-management, github-workflow-automation, internal-comms, slack-gif-creator (demo gifs), canvas-design (social art) |
 | Phase 20 (Post-launch) | reasoningbank-intelligence, agentdb-learning, internal-comms (status updates), pdf (monthly reports) |
 
+### High-leverage additions from the alirezarezvani bundle (route into existing phases)
+- **senior-frontend** + **senior-backend** + **senior-fullstack** + **senior-architect** — scaffolding & architecture review for Phases 0/2/3
+- **senior-qa** + **playwright-pro** + **a11y-audit** + **api-test-suite-builder** — Phase 12 (a11y) and Phase 16 (testing)
+- **senior-secops** + **senior-security** + **ai-security** + **cloud-security** + **security-pen-testing** + **threat-detection** + **incident-response** + **incident-commander** — Phase 14 (security)
+- **gdpr-dsgvo-expert** + **soc2-compliance** + **isms-audit-expert** — Phase 15 (legal/privacy)
+- **database-designer** + **database-schema-designer** + **sql-database-assistant** — Phase 2 (schema)
+- **stripe-integration-expert** — Phase 11 (payments)
+- **rag-architect** + **agentdb-vector-search** — Phase 5 (semantic flashcard/concept search)
+- **prompt-engineer-toolkit** + **senior-prompt-engineer** + **prompt-governance** + **llm-cost-optimizer** — any feature that calls Claude
+- **product-manager-toolkit** + **rice** + **persona** + **user-story** + **prd** — Phase 0 planning + ongoing scope mgmt
+- **scrum-master** + **sprint-plan** + **sprint-health** + **retro** — running the build cadence
+- **ux-researcher-designer** + **ui-design-system** + **apple-hig-expert** — Phase 1 design system, mobile guidance
+- **epic-design** + **landing-page-generator** + **saas-scaffolder** — Phase 10 marketing + initial scaffold
+- **content-humanizer** + **behuman** + **copywriting** + **copy-editing** — every piece of UI copy and rationale prose (anti-AI-slop)
+- **karpathy-coder** + **karpathy-check** + **cs-karpathy-reviewer** + **adversarial-reviewer** + **code-reviewer** + **pr-review-expert** + **dependency-auditor** + **tech-debt-tracker** — code review pipeline
+- **observability-designer** + **runbook-generator** + **release-manager** + **env-secrets-manager** + **secrets-vault-manager** — Phase 18/19 (launch + ops)
+- **changelog-generator** + **tc-tracker** — release notes + change tracking
+- **product-analytics** + **statistical-analyst** + **experiment-designer** + **ab-test-setup** + **analytics-tracking** + **campaign-analytics** — Phase 8 dashboard + Phase 20 experiments
+- **onboarding-cro** + **signup-flow-cro** + **page-cro** + **paywall-upgrade-cro** + **form-cro** + **popup-cro** + **churn-prevention** — Phase 7 onboarding + Phase 11 conversion
+- **email-sequence** + **email-template-builder** + **cold-email** — Phase 19 launch + Phase 20 lifecycle
+- **ai-seo** + **seo-audit** + **schema-markup** + **programmatic-seo** + **site-architecture** + **competitor-alternatives** — Phase 10 marketing/SEO
+- **executive-mentor** + **chief-of-staff** + **CEO/CTO/CMO/CPO/CFO advisors** — strategic check-ins (use sparingly)
+- **autoresearch-agent** + **agent-designer** + **agent-protocol** + **agent-workflow-designer** — Phase 20 self-improving content/engine
+- **wiki-* family** (`wiki-init`/`-ingest`/`-query`/`-lint`) + **llm-wiki** — internal knowledge vault for clinical sources
+- **plugin-audit** + **skill-security-auditor** — periodically audit our installed skill set
+- **command-guide** — mental model for choosing the right skill on each prompt
+
 ### Per-prompt protocol
 On receiving a prompt, before tool calls:
 1. Identify which phase(s) the prompt touches.
