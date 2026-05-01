@@ -12,9 +12,20 @@
 
 ---
 
-## ⚙️ Skills Usage Protocol (READ BEFORE EVERY PROMPT)
+## ⚙️ Skills Usage Protocol (READ BEFORE EVERY PROMPT — MANDATORY)
 
-> **Rule:** On every prompt, scan this map and invoke EVERY skill that applies to the work in scope. If multiple apply, invoke them in the order listed. If none apply, state that explicitly. Skills marked ⭐ are the default-on skills for any non-trivial task.
+> **HARD RULE — NON-NEGOTIABLE:** Skills MUST be used on **every build action** and **every prompt** in this project. Before any tool call, before any file edit, before any commit, before any message back to the user — scan this protocol, identify every applicable skill, and invoke them via the `Skill` tool. Skipping skills is a process failure.
+>
+> **Why this is mandatory:** Skills encode quality gates (verification-quality), aesthetic standards (frontend-design, brand-guidelines), test discipline (tdd-workflow, webapp-testing), security review (security-review), and content production (xlsx, pdf, docx, theme-factory). Without them the build degrades into generic AI output — exactly what this project must NOT be ("no AI slop" — user mandate).
+>
+> **Enforcement check (run mentally on EVERY prompt):**
+> 1. ✅ Did I identify the phase(s) this prompt touches?
+> 2. ✅ Did I list every skill from the per-phase map AND the default-on list?
+> 3. ✅ Did I invoke each one via the `Skill` tool (not just mention it)?
+> 4. ✅ Did I close the loop with `simplify` + `verification-quality` for code, or `frontend-design` + `webapp-testing` for UI?
+> 5. ✅ If a needed skill is missing, did I flag it explicitly in the response?
+>
+> If any answer is "no" — STOP, run the missed skill, then continue. Skills are not optional and not aspirational; they are the build standard.
 
 ### Default-on for any coding work
 - ⭐ **simplify** (built-in) — review changed code for reuse, quality, efficiency before declaring done
