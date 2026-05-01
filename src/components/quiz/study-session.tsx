@@ -5,6 +5,8 @@ import { Button } from "@/components/primitives/button";
 import { Eyebrow } from "@/components/primitives/eyebrow";
 import { MultipleChoice } from "@/components/quiz/multiple-choice";
 import { MultipleResponse } from "@/components/quiz/multiple-response";
+import { FillInTheBlank } from "@/components/quiz/fill-in-the-blank";
+import { BowTie } from "@/components/quiz/bow-tie";
 import {
   clearSession,
   loadSession,
@@ -117,7 +119,7 @@ export function StudySession({ items }: StudySessionProps) {
             })
           }
         />
-      ) : (
+      ) : current.itemType === "multiple_response" ? (
         <MultipleResponse
           key={current.id}
           question={current}
@@ -126,6 +128,41 @@ export function StudySession({ items }: StudySessionProps) {
             recordAttempt({
               questionId: current.id,
               selected: r.selectedIds,
+              isCorrect: r.isFullyCorrect,
+              awardedPoints: r.awardedPoints,
+              maxPoints: r.maxPoints,
+              timeSpentMs: r.timeSpentMs,
+              shuffleSeed: seed,
+              submittedAt: Date.now(),
+            })
+          }
+        />
+      ) : current.itemType === "fill_in_the_blank" ? (
+        <FillInTheBlank
+          key={current.id}
+          question={current}
+          onSubmit={(r) =>
+            recordAttempt({
+              questionId: current.id,
+              selected: [String(r.value)],
+              isCorrect: r.isCorrect,
+              awardedPoints: r.isCorrect ? 1 : 0,
+              maxPoints: 1,
+              timeSpentMs: r.timeSpentMs,
+              shuffleSeed: seed,
+              submittedAt: Date.now(),
+            })
+          }
+        />
+      ) : (
+        <BowTie
+          key={current.id}
+          question={current}
+          shuffleSeed={seed}
+          onSubmit={(r) =>
+            recordAttempt({
+              questionId: current.id,
+              selected: [...r.actions, ...r.condition, ...r.monitor],
               isCorrect: r.isFullyCorrect,
               awardedPoints: r.awardedPoints,
               maxPoints: r.maxPoints,

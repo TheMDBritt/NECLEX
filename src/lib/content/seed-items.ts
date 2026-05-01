@@ -6,6 +6,8 @@
  */
 
 import type {
+  BowTieQuestion,
+  FillInTheBlankQuestion,
   MultipleChoiceQuestion,
   MultipleResponseQuestion,
   Question,
@@ -261,6 +263,139 @@ export const seedMultipleChoiceItems: MultipleChoiceQuestion[] = [
   },
 
   {
+    id: "mc-pharm-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A nurse is preparing to administer digoxin 0.125 mg PO to a client with heart failure. The client's apical pulse is 54 beats per minute. Which is the nurse's BEST action?",
+    options: [
+      { id: "a", label: "Hold the dose and notify the provider.", isCorrect: true, feedback: "Hold for HR < 60 (adults); notify provider before next dose." },
+      { id: "b", label: "Administer the dose as scheduled.", isCorrect: false, feedback: "Bradycardia is a contraindication for the next dose." },
+      { id: "c", label: "Recheck the radial pulse instead.", isCorrect: false, feedback: "Apical is the standard for digoxin; recheck apical, not radial." },
+      { id: "d", label: "Give half the dose and document the reason.", isCorrect: false, feedback: "Splitting a dose without an order is outside scope." },
+    ],
+    rationale: {
+      body: "Hold digoxin and notify the provider when the apical heart rate is < 60 in adults (or < 70 in children, < 90 in infants). Administer only after provider review.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — digoxin (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "cardiac", contentTopic: "digoxin", specialty: "med-surg" },
+  },
+
+  {
+    id: "mc-cardiac-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A client comes to the ED reporting chest pressure radiating to the left jaw and arm for 30 minutes. Which intervention should the nurse implement FIRST?",
+    options: [
+      { id: "a", label: "Obtain a 12-lead ECG.", isCorrect: true, feedback: "12-lead ECG is the priority diagnostic to identify STEMI within 10 minutes of arrival." },
+      { id: "b", label: "Draw cardiac enzymes.", isCorrect: false, feedback: "Important and obtained early, but the ECG comes first." },
+      { id: "c", label: "Administer morphine 4 mg IV.", isCorrect: false, feedback: "Treatment follows diagnosis; ECG first." },
+      { id: "d", label: "Insert a urinary catheter for fluid balance.", isCorrect: false, feedback: "Not indicated and delays critical evaluation." },
+    ],
+    rationale: {
+      body: "Per AHA chest-pain protocol, a 12-lead ECG within 10 minutes of arrival is the single highest-priority action — it determines whether the patient is having a STEMI and triggers reperfusion timing.",
+      sources: [NCSBN_RN_PLAN, { label: "AHA Acute Coronary Syndrome Guidelines" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "cardiac", contentTopic: "acs", specialty: "med-surg" },
+  },
+
+  {
+    id: "mc-respiratory-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A nurse is caring for a client with COPD on 2 L/min nasal cannula oxygen. The client becomes confused with an SpO2 of 95%. What is the nurse's PRIORITY action?",
+    options: [
+      { id: "a", label: "Lower the oxygen flow rate to 1 L/min.", isCorrect: true, feedback: "Suspect CO2 retention; reduce supplemental O2 to maintain SpO2 88–92%." },
+      { id: "b", label: "Increase the oxygen flow rate to 4 L/min.", isCorrect: false, feedback: "Higher O2 in chronic CO2 retainers may worsen hypercapnia and AMS." },
+      { id: "c", label: "Switch to a non-rebreather mask.", isCorrect: false, feedback: "Higher FiO2 worsens the problem." },
+      { id: "d", label: "Encourage the client to take deep breaths.", isCorrect: false, feedback: "Helpful, but does not address the immediate cause." },
+    ],
+    rationale: {
+      body: "In some clients with chronic CO2 retention, supplemental oxygen can suppress the hypoxic respiratory drive and cause hypercapnic encephalopathy. Target SpO2 88–92% with COPD; reduce O2 and reassess.",
+      sources: [NCSBN_RN_PLAN, { label: "GOLD COPD report (current)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "prioritize-hypotheses", bodySystem: "respiratory", contentTopic: "copd", specialty: "med-surg" },
+  },
+
+  {
+    id: "mc-renal-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A client receiving IV vancomycin for MRSA bacteremia has a trough level of 24 mcg/mL (target 15–20) and a serum creatinine that has risen from 0.9 to 1.6 over 48 hours. What is the nurse's PRIORITY action?",
+    options: [
+      { id: "a", label: "Hold the next dose and notify the provider.", isCorrect: true, feedback: "Supratherapeutic trough + rising creatinine = nephrotoxicity risk; hold and call." },
+      { id: "b", label: "Administer the next dose as scheduled.", isCorrect: false, feedback: "Continuing would worsen nephrotoxicity." },
+      { id: "c", label: "Increase the IV fluid rate without further orders.", isCorrect: false, feedback: "Outside RN scope without an order." },
+      { id: "d", label: "Document and reassess in 24 hours.", isCorrect: false, feedback: "Delays a needed intervention." },
+    ],
+    rationale: {
+      body: "A vancomycin trough above target with a rising creatinine indicates evolving nephrotoxicity. Hold the next dose and notify the provider so the dose, level timing, or drug can be adjusted.",
+      sources: [NCSBN_RN_PLAN, { label: "ASHP/IDSA Vancomycin Therapeutic Monitoring Guidelines" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "reduction-of-risk-potential", integratedProcess: "nursing-process", cjmmStep: "evaluate-outcomes", bodySystem: "renal", contentTopic: "antibiotics", specialty: "med-surg" },
+  },
+
+  {
+    id: "mc-mh-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A client taking lithium for bipolar disorder presents to the clinic with new-onset coarse tremor, blurred vision, slurred speech, and confusion. Which is the nurse's PRIORITY action?",
+    options: [
+      { id: "a", label: "Hold the next lithium dose and obtain a stat lithium level.", isCorrect: true, feedback: "These are signs of lithium toxicity; hold and confirm with a level." },
+      { id: "b", label: "Reassure the client these are common early side effects.", isCorrect: false, feedback: "Coarse tremor, slurring, and confusion are toxicity, not benign side effects." },
+      { id: "c", label: "Increase the lithium dose for better mood control.", isCorrect: false, feedback: "Would worsen toxicity." },
+      { id: "d", label: "Encourage extra coffee and decreased water.", isCorrect: false, feedback: "Caffeine and dehydration increase lithium toxicity risk." },
+    ],
+    rationale: {
+      body: "Coarse tremor, ataxia, dysarthria, and confusion are classic signs of lithium toxicity (level usually > 1.5 mEq/L). Hold the medication, send a stat level, and prepare for IV fluids; severe toxicity may require dialysis.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — lithium (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "recognize-cues", bodySystem: "mental-health", contentTopic: "lithium", specialty: "mental-health" },
+  },
+
+  {
+    id: "mc-peds-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A 6-year-old child is admitted with new-onset type 1 diabetes. Which finding requires the MOST immediate intervention?",
+    options: [
+      { id: "a", label: "Kussmaul respirations and a fruity breath odor.", isCorrect: true, feedback: "Indicates DKA — life-threatening." },
+      { id: "b", label: "Increased thirst and urination.", isCorrect: false, feedback: "Classic but not immediately life-threatening." },
+      { id: "c", label: "Blood glucose of 280 mg/dL.", isCorrect: false, feedback: "Elevated but expected at presentation." },
+      { id: "d", label: "Recent weight loss of 4 lb.", isCorrect: false, feedback: "Common with new T1DM; not the immediate priority." },
+    ],
+    rationale: {
+      body: "Kussmaul respirations and fruity (acetone) breath are signs of diabetic ketoacidosis. Priority interventions include IV fluids, IV insulin, and electrolyte (especially potassium) management.",
+      sources: [NCSBN_RN_PLAN, { label: "ADA Standards of Care — DKA in pediatrics" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "prioritize-hypotheses", bodySystem: "endocrine", contentTopic: "dka", specialty: "peds" },
+  },
+
+  {
+    id: "mc-ob-002",
+    itemType: "multiple_choice",
+    scoringRule: "dichotomous",
+    stem:
+      "A nurse on a postpartum unit assesses a client 2 hours after a vaginal delivery. The fundus is boggy, displaced to the right, and the perineal pad is saturated. Which is the nurse's FIRST action?",
+    options: [
+      { id: "a", label: "Massage the fundus and assist the client to empty her bladder.", isCorrect: true, feedback: "Boggy, deviated fundus + bleeding = uterine atony with bladder distension." },
+      { id: "b", label: "Administer methylergonovine 0.2 mg IM.", isCorrect: false, feedback: "Indicated, but check BP first; methylergonovine is contraindicated in HTN." },
+      { id: "c", label: "Begin a 500 mL IV fluid bolus.", isCorrect: false, feedback: "Treats hemodynamic effect, not the cause; address the cause first." },
+      { id: "d", label: "Notify the provider immediately without intervening.", isCorrect: false, feedback: "Notification will follow, but first-action interventions are within RN scope." },
+    ],
+    rationale: {
+      body: "A boggy fundus deviated from midline often indicates a full bladder preventing uterine contraction. Massage the fundus to firmness and help the client void. If atony persists, escalate to medications (oxytocin, methylergonovine if not hypertensive, carboprost, misoprostol).",
+      sources: [NCSBN_RN_PLAN, { label: "AWHONN — Postpartum Hemorrhage Practice Brief" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "repro", contentTopic: "postpartum-hemorrhage", specialty: "ob" },
+  },
+
+  {
     id: "mc-delegation-001",
     itemType: "multiple_choice",
     scoringRule: "dichotomous",
@@ -348,6 +483,27 @@ export const seedMultipleResponseItems: MultipleResponseQuestion[] = [
   },
 
   {
+    id: "mr-pharm-001",
+    itemType: "multiple_response",
+    scoringRule: "polytomous_plus_minus",
+    stem:
+      "A nurse is reinforcing teaching for a client newly prescribed metoprolol for hypertension. Which statements indicate the client understands the teaching? Select all that apply.",
+    options: [
+      { id: "a", label: '"I will check my pulse before each dose and call if it is below 60."', isCorrect: true, feedback: "Hold and notify for HR < 60 — correct teaching." },
+      { id: "b", label: '"I will rise slowly from sitting or lying to prevent dizziness."', isCorrect: true, feedback: "Orthostatic hypotension is common — slow position changes prevent falls." },
+      { id: "c", label: '"I will not stop this medication suddenly even if I feel fine."', isCorrect: true, feedback: "Abrupt discontinuation can cause rebound hypertension and ischemia." },
+      { id: "d", label: '"If I feel my heart racing, I should double the dose."', isCorrect: false, feedback: "Doubling a dose is unsafe; call the provider for symptoms." },
+      { id: "e", label: '"This medication will cure my high blood pressure."', isCorrect: false, feedback: "Antihypertensives manage but do not cure HTN; lifestyle changes still matter." },
+      { id: "f", label: '"I should report any new shortness of breath or swelling in my legs."', isCorrect: true, feedback: "These can signal worsening heart failure — appropriate to report." },
+    ],
+    rationale: {
+      body: "Beta-blocker teaching emphasizes pulse monitoring (hold for HR < 60), orthostatic precautions, never stopping abruptly, and reporting signs of HF or hypoglycemia masking. Antihypertensives manage but do not cure HTN, and clients should never adjust their own dose.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — metoprolol (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "teaching-learning", cjmmStep: "evaluate-outcomes", bodySystem: "cardiac", contentTopic: "beta-blockers", specialty: "med-surg" },
+  },
+
+  {
     id: "mr-falls-001",
     itemType: "multiple_response",
     scoringRule: "polytomous_plus_minus",
@@ -369,12 +525,113 @@ export const seedMultipleResponseItems: MultipleResponseQuestion[] = [
   },
 ];
 
+export const seedFillInTheBlankItems: FillInTheBlankQuestion[] = [
+  {
+    id: "fitb-calc-001",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem:
+      "A provider orders 1,000 mL of 0.9% normal saline to infuse over 8 hours. The IV pump is calibrated in mL/hr. At what rate should the nurse set the pump? Round to the nearest whole number.",
+    acceptedMin: 125,
+    acceptedMax: 125,
+    units: "mL/hr",
+    decimals: 0,
+    rationale: {
+      body: "Volume ÷ time = rate.\n1,000 mL ÷ 8 hr = 125 mL/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Drug Calculations for Nurses" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "iv-calc", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-002",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem:
+      "An order reads heparin 25,000 units in 250 mL D5W to infuse at 18 units/kg/hr for a client weighing 70 kg. At what rate (mL/hr) should the nurse set the pump? Round to the nearest tenth.",
+    acceptedMin: 12.5,
+    acceptedMax: 12.7,
+    units: "mL/hr",
+    decimals: 1,
+    rationale: {
+      body:
+        "Step 1 — units per hour: 18 units/kg/hr × 70 kg = 1,260 units/hr.\nStep 2 — concentration: 25,000 units ÷ 250 mL = 100 units/mL.\nStep 3 — mL/hr: 1,260 units/hr ÷ 100 units/mL = 12.6 mL/hr.",
+      sources: [NCSBN_RN_PLAN, { label: "FDA label — heparin (DailyMed)" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "hematologic", contentTopic: "heparin-calc", specialty: "med-surg" },
+  },
+  {
+    id: "fitb-calc-003",
+    itemType: "fill_in_the_blank",
+    scoringRule: "dichotomous",
+    stem:
+      "A pediatric client weighs 18 kg and is prescribed amoxicillin 50 mg/kg/day in three divided doses. How many milligrams should the nurse give per single dose?",
+    acceptedMin: 300,
+    acceptedMax: 300,
+    units: "mg",
+    decimals: 0,
+    rationale: {
+      body:
+        "Step 1 — total daily dose: 50 mg/kg × 18 kg = 900 mg/day.\nStep 2 — per dose: 900 mg ÷ 3 doses = 300 mg per dose.",
+      sources: [NCSBN_RN_PLAN, { label: "Lippincott Pediatric Drug Reference" }],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "pharmacological-and-parenteral-therapies", integratedProcess: "nursing-process", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "peds-dose-calc", specialty: "peds" },
+  },
+];
+
+export const seedBowTieItems: BowTieQuestion[] = [
+  {
+    id: "bt-sepsis-001",
+    itemType: "bow_tie",
+    scoringRule: "polytomous_rationale",
+    stem:
+      "A nurse assesses a 68-year-old client admitted with a 2-day history of cough and fever. Vital signs: T 38.9°C, HR 118, BP 88/52, RR 26, SpO2 92% on room air. Lactate 3.2 mmol/L. WBC 16,500/mm³. The client appears confused.",
+    actions: {
+      selectCount: 2,
+      options: [
+        { id: "a1", label: "Obtain blood cultures before starting antibiotics.", isCorrect: true, feedback: "Hour-1 sepsis bundle." },
+        { id: "a2", label: "Begin a 30 mL/kg crystalloid IV bolus.", isCorrect: true, feedback: "Initial fluid resuscitation per Surviving Sepsis Campaign." },
+        { id: "a3", label: "Administer a PO antipyretic and recheck in 2 hours.", isCorrect: false, feedback: "Delays critical resuscitation." },
+        { id: "a4", label: "Schedule a CT scan in the morning.", isCorrect: false, feedback: "Imaging is not the priority while the client is shocked." },
+        { id: "a5", label: "Hold all IV fluids until urine output is documented.", isCorrect: false, feedback: "Withholding fluids worsens shock." },
+      ],
+    },
+    condition: {
+      options: [
+        { id: "c1", label: "Septic shock.", isCorrect: true, feedback: "MAP < 65 with lactate > 2 in suspected infection." },
+        { id: "c2", label: "Cardiogenic shock.", isCorrect: false, feedback: "No primary cardiac event described." },
+        { id: "c3", label: "Hypovolemic shock from GI bleed.", isCorrect: false, feedback: "No GI loss described." },
+        { id: "c4", label: "Anaphylactic shock.", isCorrect: false, feedback: "No allergen exposure or skin findings described." },
+      ],
+    },
+    monitor: {
+      selectCount: 2,
+      options: [
+        { id: "m1", label: "Mean arterial pressure.", isCorrect: true, feedback: "Goal MAP ≥ 65 mm Hg." },
+        { id: "m2", label: "Serial lactate levels.", isCorrect: true, feedback: "Trends reflect tissue perfusion." },
+        { id: "m3", label: "Blood glucose every 4 hours only.", isCorrect: false, feedback: "Tighter monitoring is needed in critical illness." },
+        { id: "m4", label: "Bowel sounds every 8 hours.", isCorrect: false, feedback: "Lower priority in acute resuscitation." },
+        { id: "m5", label: "Hair growth on extremities.", isCorrect: false, feedback: "Not a sepsis-relevant parameter." },
+      ],
+    },
+    rationale: {
+      body:
+        "The presentation — fever, tachycardia, hypotension, tachypnea, altered mental status, leukocytosis, lactate > 2 — meets criteria for septic shock with end-organ dysfunction. The Surviving Sepsis Campaign hour-1 bundle requires obtaining cultures BEFORE giving antibiotics, starting broad-spectrum antibiotics, and administering 30 mL/kg of crystalloid for hypotension or lactate ≥ 4. Ongoing monitoring focuses on MAP (goal ≥ 65) and serial lactates as markers of tissue perfusion.",
+      sources: [
+        NCSBN_RN_PLAN,
+        { label: "Surviving Sepsis Campaign — Hour-1 Bundle", url: "https://www.sccm.org/SurvivingSepsisCampaign/Guidelines/Adult-Patients" },
+      ],
+    },
+    tags: { examTarget: "RN", clientNeed: "physiological-integrity", subCategory: "physiological-adaptation", integratedProcess: "clinical-judgment", cjmmStep: "take-actions", bodySystem: "multisystem", contentTopic: "sepsis", specialty: "med-surg" },
+  },
+];
+
 /**
- * The combined session feed — every seed item, in a curated order so a fresh
- * session has variety. The /study filter UI lets the learner narrow this down
- * by body system / specialty / item type.
+ * The combined session feed — every seed item. The /study filter UI lets the
+ * learner narrow this down by body system, specialty, or item type.
  */
 export const seedSession: Question[] = [
   ...seedMultipleChoiceItems,
   ...seedMultipleResponseItems,
+  ...seedFillInTheBlankItems,
+  ...seedBowTieItems,
 ];

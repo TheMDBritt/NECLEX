@@ -95,4 +95,60 @@ export interface MultipleResponseQuestion {
   tags: QuestionTags;
 }
 
-export type Question = MultipleChoiceQuestion | MultipleResponseQuestion;
+/**
+ * Fill-in-the-Blank — typically a dosage-calc item. Numeric answer with
+ * an accepted range to allow for legitimate rounding differences.
+ */
+export interface FillInTheBlankQuestion {
+  id: string;
+  itemType: "fill_in_the_blank";
+  scoringRule: "dichotomous";
+  stem: string;
+  /** Inclusive numeric range that counts as correct (e.g. 41.6–41.7 mL/hr). */
+  acceptedMin: number;
+  acceptedMax: number;
+  /** What the learner is being asked to enter. */
+  units: string;
+  /** Decimal places to preserve in display feedback. */
+  decimals?: number;
+  rationale: Rationale;
+  tags: QuestionTags;
+}
+
+/**
+ * Bow-Tie — the marquee NGN item type. A single client scenario produces
+ * three linked sections:
+ *   - Actions to Take      (multi-select, exactly N correct)
+ *   - Condition Most Likely (single-select)
+ *   - Parameters to Monitor (multi-select, exactly N correct)
+ *
+ * Scoring is rationale-linked (NCSBN polytomous): the candidate earns full
+ * credit for a section ONLY if all picks within that section are correct.
+ * The item awards a max of 3 points (one per section).
+ */
+export interface BowTieQuestion {
+  id: string;
+  itemType: "bow_tie";
+  scoringRule: "polytomous_rationale";
+  stem: string;
+  actions: {
+    /** How many actions must be selected; exam-typical is 2. */
+    selectCount: number;
+    options: Option[];
+  };
+  condition: {
+    options: Option[];
+  };
+  monitor: {
+    selectCount: number;
+    options: Option[];
+  };
+  rationale: Rationale;
+  tags: QuestionTags;
+}
+
+export type Question =
+  | MultipleChoiceQuestion
+  | MultipleResponseQuestion
+  | FillInTheBlankQuestion
+  | BowTieQuestion;
