@@ -264,6 +264,10 @@ function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
   const beatAudioRef = useRef<HTMLAudioElement | null>(null);
   const vocalAudioRef = useRef<HTMLAudioElement | null>(null);
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+  /** Lines of lyrics queued one per bar of the beat. */
+  const lyricLinesRef = useRef<string[]>([]);
+  const lyricIndexRef = useRef<number>(0);
+  const lyricRateRef = useRef<number>(1.0);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recorderChunksRef = useRef<BlobPart[]>([]);
   const recorderStreamRef = useRef<MediaStream | null>(null);
@@ -343,7 +347,71 @@ function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
     return parts.join(". ");
   }
 
-  async function startBeat(): Promise<void> {
+  /**
+   * Flatten the lyrics into one line per beat-bar. Section headers like
+   * `[Hook]` or `[Verse]` are dropped. Empty lines are dropped.
+   */
+  function buildLyricLines(): string[] {
+    const all: string[] = [];
+    if (!mnemonic.lyrics?.length) return all;
+    for (const stanza of mnemonic.lyrics) {
+      for (const raw of stanza.split(/\r?\n/)) {
+        const line = raw.trim();
+        if (!line) continue;
+        if (line.startsWith("[") && line.endsWith("]")) continue;
+        all.push(line);
+      }
+    }
+    return all;
+  }
+
+  /**
+   * Pick a TTS rate that lets a typical 7–10 syllable line land within one
+   * bar of the beat. Slower BPMs get slower rates so the words feel sung-
+   * out; faster BPMs (drill) get a tighter rate so the flow keeps up.
+   */
+  function rateForBpm(bpm: number): number {
+    if (bpm <= 75) return 0.9;
+    if (bpm <= 90) return 1.0;
+    if (bpm <= 100) return 1.1;
+    if (bpm <= 130) return 1.25;
+    return 1.4;
+  }
+
+  function pitchForLineIndex(i: number): number {
+    // Vary pitch across the song for vocal interest without being shouty.
+    const cycle = [0.95, 1.0, 1.05, 1.0];
+    return cycle[i % cycle.length] ?? 1.0;
+  }
+
+  function speakLineAtBar() {
+    if (!("speechSynthesis" in window)) return;
+    const idx = lyricIndexRef.current;
+    const lines = lyricLinesRef.current;
+    if (idx >= lines.length) return; // out of lyrics; let the beat keep playing
+    const line = lines[idx]!;
+    lyricIndexRef.current = idx + 1;
+
+    const synth = window.speechSynthesis;
+    // Don't queue up forever — if the prior line is still playing, cancel it
+    // so the next bar's words land on time even if we ran a touch long.
+    if (synth.speaking) synth.cancel();
+
+    const utter = new SpeechSynthesisUtterance(line);
+    utter.rate = lyricRateRef.current;
+    utter.pitch = pitchForLineIndex(idx);
+    utter.volume = 1.0;
+    utter.lang = "en-US";
+    const voices = synth.getVoices();
+    const enVoice =
+      voices.find((v) => v.lang.startsWith("en") && v.localService) ??
+      voices.find((v) => v.lang.startsWith("en"));
+    if (enVoice) utter.voice = enVoice;
+    utterRef.current = utter;
+    synth.speak(utter);
+  }
+
+  async function startBeat(onBar?: (bar: number) => void): Promise<void> {
     if (customUrl) {
       try {
         const audio = new Audio(customUrl);
@@ -352,6 +420,20 @@ function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
         audio.crossOrigin = "anonymous";
         beatAudioRef.current = audio;
         await audio.play();
+        // Custom MP3 backing — no bar callback available; fire a manual
+        // pulse based on a generic 90 BPM 16-step bar so lyrics still land
+        // in time. (Falls through to the standard onBar pattern.)
+        if (onBar) {
+          const fakeBpm = 90;
+          const barMs = (60 / fakeBpm) * 4 * 1000;
+          let bar = 0;
+          const tick = () => {
+            if (!beatAudioRef.current) return;
+            onBar(bar++);
+            window.setTimeout(tick, barMs);
+          };
+          window.setTimeout(tick, 200);
+        }
         return;
       } catch {
         // fall through to synth
@@ -360,7 +442,7 @@ function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
     if (mnemonic.beatStyle && BeatPlayer.isSupported()) {
       const player = new BeatPlayer();
       beatPlayerRef.current = player;
-      await player.start(mnemonic.beatStyle, 0.55);
+      await player.start(mnemonic.beatStyle, { masterGain: 0.55, onBar });
     }
   }
 
@@ -368,41 +450,52 @@ function SongPlayer({ mnemonic }: { mnemonic: Mnemonic }) {
     if (!supported || playing) return;
     setPlaying(true);
 
-    await startBeat();
-
+    // If she's recorded her own vocal, layer the recording over the beat —
+    // her real voice replaces TTS entirely.
     const recordedBlob = await getVoiceRecording(mnemonic.id);
-    if (recordedBlob) {
-      const url = URL.createObjectURL(recordedBlob);
-      const audio = new Audio(url);
-      audio.volume = 1.0;
-      audio.onended = () => stopAll();
-      audio.onerror = () => stopAll();
-      vocalAudioRef.current = audio;
-      try {
-        await audio.play();
-      } catch {
-        stopAll();
-      }
+
+    // Otherwise, prepare the lyric-on-bar scheduler so TTS lines land with
+    // the music instead of being read flat.
+    if (!recordedBlob) {
+      lyricLinesRef.current = buildLyricLines();
+      lyricIndexRef.current = 0;
+      const bpm = mnemonic.beatStyle
+        ? BeatPlayer.bpmFor(mnemonic.beatStyle)
+        : 90;
+      lyricRateRef.current = rateForBpm(bpm);
+
+      // Stop the song once we run out of lines + a little tail for the
+      // last utterance to finish.
+      const onBar = () => {
+        const i = lyricIndexRef.current;
+        const total = lyricLinesRef.current.length;
+        if (i >= total) {
+          // Wait two more bars after the last line, then stop.
+          if (i === total) {
+            lyricIndexRef.current = total + 1;
+          } else if (i === total + 1) {
+            stopAll();
+          }
+          return;
+        }
+        speakLineAtBar();
+      };
+      await startBeat(onBar);
       return;
     }
 
-    // No recording yet → fall back to TTS reading
-    if ("speechSynthesis" in window) {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(buildLyricsText());
-      utter.rate = 1.0;
-      utter.pitch = 1.0;
-      utter.volume = 1.0;
-      utter.lang = "en-US";
-      const voices = synth.getVoices();
-      const enVoice =
-        voices.find((v) => v.lang.startsWith("en") && v.localService) ??
-        voices.find((v) => v.lang.startsWith("en"));
-      if (enVoice) utter.voice = enVoice;
-      utter.onend = () => stopAll();
-      utter.onerror = () => stopAll();
-      utterRef.current = utter;
-      synth.speak(utter);
+    // Recorded vocal path: just start the beat + her recording in parallel.
+    await startBeat();
+    const url = URL.createObjectURL(recordedBlob);
+    const audio = new Audio(url);
+    audio.volume = 1.0;
+    audio.onended = () => stopAll();
+    audio.onerror = () => stopAll();
+    vocalAudioRef.current = audio;
+    try {
+      await audio.play();
+    } catch {
+      stopAll();
     }
   }
 
