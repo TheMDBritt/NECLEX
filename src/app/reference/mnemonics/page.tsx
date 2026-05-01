@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Container } from "@/components/primitives/container";
 import { Eyebrow } from "@/components/primitives/eyebrow";
 import { PageFrame } from "@/components/shell/page-frame";
+import { MnemonicReference } from "@/components/reference/mnemonic-reference";
+import { mnemonics } from "@/lib/content/mnemonics";
 
 export const metadata: Metadata = {
   title: "Mnemonics",
@@ -17,8 +19,12 @@ export default function MnemonicsPage() {
             Mnemonics.
           </h1>
           <p className="mt-5 max-w-[58ch] font-body text-[1rem] leading-[1.6] text-ink-soft">
-            Coming next round, with audio. Acronyms, songs, and image anchors all in one place.
+            Acronyms, sentences, and clinical sayings that hold up under pressure.
           </p>
+
+          <div className="mt-10">
+            <MnemonicReference items={mnemonics} />
+          </div>
         </section>
       </Container>
     </PageFrame>

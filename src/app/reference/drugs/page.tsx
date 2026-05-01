@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Container } from "@/components/primitives/container";
 import { Eyebrow } from "@/components/primitives/eyebrow";
 import { PageFrame } from "@/components/shell/page-frame";
+import { DrugReference } from "@/components/reference/drug-reference";
+import { drugs } from "@/lib/content/drugs";
 
 export const metadata: Metadata = {
   title: "Drugs",
@@ -17,8 +19,13 @@ export default function DrugsPage() {
             Drug library.
           </h1>
           <p className="mt-5 max-w-[58ch] font-body text-[1rem] leading-[1.6] text-ink-soft">
-            Coming next round. The page is reserved so the link works.
+            Search by name or class. Each card shows mechanism, indications, adverse effects, and
+            nursing care. Antidotes and black-box warnings called out where they apply.
           </p>
+
+          <div className="mt-10">
+            <DrugReference drugs={drugs} />
+          </div>
         </section>
       </Container>
     </PageFrame>
