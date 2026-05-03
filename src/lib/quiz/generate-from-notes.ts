@@ -364,7 +364,7 @@ async function generateBatchGemini(
         continue;
       }
       throw new Error(
-        "Hit Gemini's free-tier rate limit. Wait a minute and try again, or set ANTHROPIC_API_KEY as a fallback.",
+        "All free-tier providers are rate-limited right now. Wait a minute and try again.",
       );
     }
 
@@ -491,17 +491,17 @@ async function generateBatch(
   batchIdx: number,
 ): Promise<Question[]> {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const groqKey = process.env.GROQ_API_KEY;
   const cerebrasKey = process.env.CEREBRAS_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
   let raws: RawQuestion[] = [];
   let lastErr: unknown = null;
 
   // Provider chain (each falls through to the next on error/rate-limit):
-  //   Anthropic (best quality, paid)
+  //   Anthropic (best quality, paid — only if explicitly configured)
+  //   → Cerebras (fastest inference, most TPM headroom for big quizzes)
   //   → Groq (fast, 30 RPM free)
-  //   → Cerebras (fastest, more TPM headroom for big quizzes)
   //   → Gemini (free fallback)
   if (anthropicKey) {
     try {
@@ -512,21 +512,21 @@ async function generateBatch(
     }
   }
 
-  if (raws.length === 0 && groqKey) {
-    try {
-      raws = await generateBatchGroq(groqKey, input);
-    } catch (err) {
-      lastErr = err;
-      console.warn("Groq generation failed, falling through:", err);
-    }
-  }
-
   if (raws.length === 0 && cerebrasKey) {
     try {
       raws = await generateBatchCerebras(cerebrasKey, input);
     } catch (err) {
       lastErr = err;
       console.warn("Cerebras generation failed, falling through:", err);
+    }
+  }
+
+  if (raws.length === 0 && groqKey) {
+    try {
+      raws = await generateBatchGroq(groqKey, input);
+    } catch (err) {
+      lastErr = err;
+      console.warn("Groq generation failed, falling through:", err);
     }
   }
 
