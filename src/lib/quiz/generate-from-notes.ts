@@ -9,7 +9,8 @@ import type {
   Question,
 } from "@/lib/types/question";
 
-const PER_BATCH = 6;
+const PER_BATCH = 10;
+const MAX_CONCURRENT_BATCHES = 5;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const SOURCE_LABEL = "From your uploaded notes";
@@ -327,47 +328,66 @@ async function generateBatchGemini(
   input: BatchInput,
 ): Promise<RawQuestion[]> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
+  const body = JSON.stringify({
+    systemInstruction: {
+      parts: [{ text: systemPrompt(input.allowedTypes) }],
     },
-    body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: systemPrompt(input.allowedTypes) }],
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userPrompt(input.notes, input.allowedTypes, input.count) }],
       },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userPrompt(input.notes, input.allowedTypes, input.count) }],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: questionsSchema,
-        maxOutputTokens: 16000,
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    }),
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: questionsSchema,
+      maxOutputTokens: 16000,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   });
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${body.slice(0, 300)}`);
+  const RETRY_DELAYS_MS = [2000, 6000, 15000];
+  let lastError: string | null = null;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body,
+    });
+
+    if (res.status === 429 || res.status === 503) {
+      lastError = `Gemini rate-limited (${res.status})`;
+      if (attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]!);
+        continue;
+      }
+      throw new Error(
+        "Hit Gemini's free-tier rate limit. Wait a minute and try again, or set ANTHROPIC_API_KEY as a fallback.",
+      );
+    }
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Gemini API error (${res.status}): ${text.slice(0, 300)}`);
+    }
+
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text) as { questions?: RawQuestion[] };
+      return Array.isArray(parsed.questions) ? parsed.questions : [];
+    } catch {
+      return [];
+    }
   }
-  const json = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return [];
-  let parsed: { questions?: RawQuestion[] };
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    return [];
-  }
-  return Array.isArray(parsed.questions) ? parsed.questions : [];
+  throw new Error(lastError ?? "Gemini request failed.");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function generateBatch(
@@ -457,18 +477,23 @@ export async function generateQuizFromNotes({
     batchIdx += 1;
   }
 
-  const results = await Promise.all(
-    batches.map((b) =>
-      generateBatch(
-        {
-          notes: trimmedNotes,
-          allowedTypes,
-          count: b.count,
-        },
-        b.batchIdx,
+  const results: Question[][] = [];
+  for (let i = 0; i < batches.length; i += MAX_CONCURRENT_BATCHES) {
+    const window = batches.slice(i, i + MAX_CONCURRENT_BATCHES);
+    const windowResults = await Promise.all(
+      window.map((b) =>
+        generateBatch(
+          {
+            notes: trimmedNotes,
+            allowedTypes,
+            count: b.count,
+          },
+          b.batchIdx,
+        ),
       ),
-    ),
-  );
+    );
+    results.push(...windowResults);
+  }
 
   const flat = results.flat();
   if (flat.length === 0) {
