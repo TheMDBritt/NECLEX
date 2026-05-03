@@ -9,7 +9,7 @@ import type {
   Question,
 } from "@/lib/types/question";
 
-const PER_BATCH = 12;
+const PER_BATCH = 6;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const SOURCE_LABEL = "From your uploaded notes";
@@ -320,6 +320,7 @@ async function generateBatchGemini(
         responseMimeType: "application/json",
         responseSchema: questionsSchema,
         maxOutputTokens: 16000,
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   });
