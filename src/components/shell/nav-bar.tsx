@@ -4,6 +4,7 @@ import { Wordmark } from "@/components/marks/wordmark";
 
 const links = [
   { href: "/study", label: "Study" },
+  { href: "/notes", label: "From notes" },
   { href: "/reference", label: "Reference" },
 ] as const;
 

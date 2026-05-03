@@ -19,6 +19,13 @@ const queues = [
     cta: "Start a set",
   },
   {
+    href: "/notes",
+    title: "From your notes",
+    body: "Paste or upload your own notes — get a quiz back, in any of the NCLEX item types, up to 100 questions.",
+    accent: "sage",
+    cta: "Make a quiz",
+  },
+  {
     href: "/reference",
     title: "Reference",
     body: "Drug cards, lab values, and mnemonics.",
@@ -30,6 +37,7 @@ const queues = [
 const accentBg = {
   lavender: "bg-lavender-50",
   clay: "bg-clay-50",
+  sage: "bg-sage-50",
 } as const;
 
 export default function HomePage() {
@@ -55,7 +63,7 @@ export default function HomePage() {
           <h2 id="queues" className="sr-only">
             Pick where to go
           </h2>
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             {queues.map((q) => (
               <Link
                 key={q.title}
