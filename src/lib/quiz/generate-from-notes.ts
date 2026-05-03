@@ -20,8 +20,13 @@ const MAX_CONCURRENT_BATCHES = 3;
 const INTER_WAVE_DELAY_MS = 1500;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
-const GROQ_MODEL = "llama-3.3-70b-versatile";
-const CEREBRAS_MODEL = "llama-3.3-70b";
+// Free-tier Groq has only 12k TPM on the 70b model — a single notes batch
+// (system prompt + uploaded notes) routinely exceeds that. The 8b-instant
+// model has ~30k TPM headroom and handles NCLEX-style structured output.
+const GROQ_MODEL = "llama-3.1-8b-instant";
+// Cerebras' free tier exposes scout-17b reliably; the bare "llama-3.3-70b"
+// id 404'd on this account.
+const CEREBRAS_MODEL = "llama-4-scout-17b-16e-instruct";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
