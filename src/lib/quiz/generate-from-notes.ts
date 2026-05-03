@@ -24,9 +24,10 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 // notes batch (~18k tokens), so this provider will 413 for big uploads and
 // fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// Larger Cerebras models 404 on this account's plan; qwen-3-32b is reliably
-// in the free tier and produces stable JSON for structured-output schemas.
-const CEREBRAS_MODEL = "qwen-3-32b";
+// qwen-3-32b accepted requests but kept returning unparseable output on this
+// notes set. gpt-oss-120b is on Cerebras' free tier and handles
+// strict-JSON system prompts more cleanly.
+const CEREBRAS_MODEL = "gpt-oss-120b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -361,13 +362,14 @@ async function generateBatchGemini(
   });
 
   // Vercel Hobby tier caps function duration at 60s. Stay well under that.
-  const RETRY_DELAYS_MS = [2000, 5000, 12000];
+  const RETRY_DELAYS_MS = [3000, 8000];
   let lastError: string | null = null;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body,
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (res.status === 429 || res.status === 503) {
@@ -405,6 +407,32 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Per-provider hard cap so no single provider can eat the function's 60s
+// budget. 20s leaves room to fall through to one or two more providers.
+const PROVIDER_TIMEOUT_MS = 20000;
+
+// Models sometimes return ```json ... ``` fences or extra prose. Pull out
+// the first balanced JSON object we can find so structured parsing succeeds.
+function extractJsonObject(raw: string): unknown | null {
+  const stripped = raw
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  try {
+    return JSON.parse(stripped);
+  } catch {
+    // Fall through to bracket scan.
+  }
+  const start = stripped.indexOf("{");
+  const end = stripped.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    return JSON.parse(stripped.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
 async function generateBatchOpenAIShape(params: {
   url: string;
   apiKey: string;
@@ -430,7 +458,7 @@ async function generateBatchOpenAIShape(params: {
     temperature: 0.4,
   });
 
-  const RETRY_DELAYS_MS = [2000, 6000, 15000];
+  const RETRY_DELAYS_MS = [2000, 6000];
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const res = await fetch(url, {
       method: "POST",
@@ -439,6 +467,7 @@ async function generateBatchOpenAIShape(params: {
         Authorization: `Bearer ${apiKey}`,
       },
       body,
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (res.status === 429 || res.status === 503) {
@@ -462,13 +491,19 @@ async function generateBatchOpenAIShape(params: {
       choices?: { message?: { content?: string } }[];
     };
     const text = json.choices?.[0]?.message?.content;
-    if (!text) return [];
-    try {
-      const parsed = JSON.parse(text) as { questions?: RawQuestion[] };
-      return Array.isArray(parsed.questions) ? parsed.questions : [];
-    } catch {
+    if (!text) {
+      console.error(`[generate-quiz] ${providerLabel} empty content`);
       return [];
     }
+    const parsed = extractJsonObject(text) as { questions?: RawQuestion[] } | null;
+    if (!parsed) {
+      console.error(
+        `[generate-quiz] ${providerLabel} unparseable response (first 200 chars):`,
+        text.slice(0, 200),
+      );
+      return [];
+    }
+    return Array.isArray(parsed.questions) ? parsed.questions : [];
   }
   throw new Error(`${providerLabel} request failed.`);
 }
