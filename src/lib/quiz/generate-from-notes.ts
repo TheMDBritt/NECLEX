@@ -503,7 +503,21 @@ async function generateBatch(
   const geminiKey = process.env.GEMINI_API_KEY;
 
   let raws: RawQuestion[] = [];
-  let lastErr: unknown = null;
+  const failures: string[] = [];
+
+  const tryProvider = async (
+    label: string,
+    fn: () => Promise<RawQuestion[]>,
+  ): Promise<void> => {
+    try {
+      raws = await fn();
+      if (raws.length === 0) failures.push(`${label}: returned 0 questions`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      failures.push(`${label}: ${msg}`);
+      console.error(`[generate-quiz] ${label} failed:`, msg);
+    }
+  };
 
   // Provider chain (each falls through to the next on error/rate-limit):
   //   Anthropic (best quality, paid — only if explicitly configured)
@@ -511,48 +525,30 @@ async function generateBatch(
   //   → Groq (fast, 30 RPM free)
   //   → Gemini (free fallback)
   if (anthropicKey) {
-    try {
-      raws = await generateBatchAnthropic(anthropicKey, input);
-    } catch (err) {
-      lastErr = err;
-      console.warn("Anthropic generation failed, falling through:", err);
-    }
+    await tryProvider("Anthropic", () =>
+      generateBatchAnthropic(anthropicKey, input),
+    );
   }
-
   if (raws.length === 0 && cerebrasKey) {
-    try {
-      raws = await generateBatchCerebras(cerebrasKey, input);
-    } catch (err) {
-      lastErr = err;
-      console.warn("Cerebras generation failed, falling through:", err);
-    }
+    await tryProvider("Cerebras", () =>
+      generateBatchCerebras(cerebrasKey, input),
+    );
   }
-
   if (raws.length === 0 && groqKey) {
-    try {
-      raws = await generateBatchGroq(groqKey, input);
-    } catch (err) {
-      lastErr = err;
-      console.warn("Groq generation failed, falling through:", err);
-    }
+    await tryProvider("Groq", () => generateBatchGroq(groqKey, input));
   }
-
   if (raws.length === 0 && geminiKey) {
-    try {
-      raws = await generateBatchGemini(geminiKey, input);
-    } catch (err) {
-      lastErr = err;
-    }
+    await tryProvider("Gemini", () => generateBatchGemini(geminiKey, input));
   }
 
   if (raws.length === 0) {
-    if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
     if (!anthropicKey && !groqKey && !cerebrasKey && !geminiKey) {
       throw new Error(
         "Set ANTHROPIC_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
       );
     }
-    return [];
+    const summary = failures.length > 0 ? failures.join(" | ") : "no providers configured";
+    throw new Error(`Quiz generation failed. ${summary}`);
   }
 
   const questions: Question[] = [];

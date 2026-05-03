@@ -63,6 +63,7 @@ export async function POST(request: Request) {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Something went wrong generating the quiz.";
+    console.error("[generate-quiz] route failed:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
