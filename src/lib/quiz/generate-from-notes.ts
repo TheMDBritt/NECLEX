@@ -10,7 +10,14 @@ import type {
 } from "@/lib/types/question";
 
 const PER_BATCH = 10;
-const MAX_CONCURRENT_BATCHES = 5;
+// Free-tier providers (Gemini ~10 RPM, Groq 30 RPM) get saturated by 5
+// simultaneous batches when a 100-question quiz fans out to 10 batches at
+// once. Three keeps peak load under every free tier's per-minute cap while
+// staying fast for typical 5–25 question runs (still a single wave).
+const MAX_CONCURRENT_BATCHES = 3;
+// Pause between waves so a burst-then-burst pattern doesn't trip RPM windows
+// on Gemini specifically (10 calls in <60s would otherwise 429 the tail).
+const INTER_WAVE_DELAY_MS = 1500;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
@@ -604,9 +611,11 @@ export async function generateQuizFromNotes({
   }
 
   const results: Question[][] = [];
+  let lastBatchError: unknown = null;
   for (let i = 0; i < batches.length; i += MAX_CONCURRENT_BATCHES) {
+    if (i > 0) await sleep(INTER_WAVE_DELAY_MS);
     const window = batches.slice(i, i + MAX_CONCURRENT_BATCHES);
-    const windowResults = await Promise.all(
+    const windowResults = await Promise.allSettled(
       window.map((b) =>
         generateBatch(
           {
@@ -618,11 +627,19 @@ export async function generateQuizFromNotes({
         ),
       ),
     );
-    results.push(...windowResults);
+    for (const r of windowResults) {
+      if (r.status === "fulfilled") results.push(r.value);
+      else lastBatchError = r.reason;
+    }
   }
 
   const flat = results.flat();
   if (flat.length === 0) {
+    if (lastBatchError) {
+      throw lastBatchError instanceof Error
+        ? lastBatchError
+        : new Error(String(lastBatchError));
+    }
     throw new Error(
       "Couldn't generate any questions from those notes. Try pasting more material or picking a different question type.",
     );
