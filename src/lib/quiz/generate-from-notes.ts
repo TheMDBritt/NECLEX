@@ -13,6 +13,7 @@ const PER_BATCH = 10;
 const MAX_CONCURRENT_BATCHES = 5;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -390,22 +391,97 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function generateBatchGroq(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  const url = "https://api.groq.com/openai/v1/chat/completions";
+  const body = JSON.stringify({
+    model: GROQ_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: `${systemPrompt(input.allowedTypes)}\n\nRespond with a single JSON object that matches exactly this JSON Schema:\n${JSON.stringify(questionsSchema)}\n\nReturn only the JSON. No prose, no markdown fences.`,
+      },
+      {
+        role: "user",
+        content: userPrompt(input.notes, input.allowedTypes, input.count),
+      },
+    ],
+    response_format: { type: "json_object" },
+    max_tokens: 16000,
+    temperature: 0.4,
+  });
+
+  const RETRY_DELAYS_MS = [2000, 6000, 15000];
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body,
+    });
+
+    if (res.status === 429 || res.status === 503) {
+      if (attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]!);
+        continue;
+      }
+      throw new Error(
+        "Hit Groq's rate limit. Wait a minute and try again — the next request usually goes through.",
+      );
+    }
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Groq API error (${res.status}): ${text.slice(0, 300)}`);
+    }
+
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
+    const text = json.choices?.[0]?.message?.content;
+    if (!text) return [];
+    try {
+      const parsed = JSON.parse(text) as { questions?: RawQuestion[] };
+      return Array.isArray(parsed.questions) ? parsed.questions : [];
+    } catch {
+      return [];
+    }
+  }
+  throw new Error("Groq request failed.");
+}
+
 async function generateBatch(
   input: BatchInput,
   batchIdx: number,
 ): Promise<Question[]> {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
   let raws: RawQuestion[] = [];
   let lastErr: unknown = null;
 
+  // Order: Anthropic (best quality, paid) → Groq (fast, generous free tier)
+  // → Gemini (free fallback). Each provider falls through to the next on error.
   if (anthropicKey) {
     try {
       raws = await generateBatchAnthropic(anthropicKey, input);
     } catch (err) {
       lastErr = err;
-      console.warn("Anthropic generation failed, attempting Gemini fallback:", err);
+      console.warn("Anthropic generation failed, falling through:", err);
+    }
+  }
+
+  if (raws.length === 0 && groqKey) {
+    try {
+      raws = await generateBatchGroq(groqKey, input);
+    } catch (err) {
+      lastErr = err;
+      console.warn("Groq generation failed, falling through:", err);
     }
   }
 
@@ -419,9 +495,9 @@ async function generateBatch(
 
   if (raws.length === 0) {
     if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
-    if (!anthropicKey && !geminiKey) {
+    if (!anthropicKey && !groqKey && !geminiKey) {
       throw new Error(
-        "Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env.local to enable quiz generation.",
+        "Set ANTHROPIC_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
       );
     }
     return [];
@@ -447,9 +523,13 @@ export async function generateQuizFromNotes({
   itemTypes,
   count,
 }: GenerateRequest): Promise<Question[]> {
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) {
+  if (
+    !process.env.ANTHROPIC_API_KEY &&
+    !process.env.GROQ_API_KEY &&
+    !process.env.GEMINI_API_KEY
+  ) {
     throw new Error(
-      "Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env.local to enable quiz generation.",
+      "Set ANTHROPIC_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
     );
   }
 
