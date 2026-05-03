@@ -14,6 +14,7 @@ const MAX_CONCURRENT_BATCHES = 5;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
+const CEREBRAS_MODEL = "llama-3.3-70b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -391,13 +392,16 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function generateBatchGroq(
-  apiKey: string,
-  input: BatchInput,
-): Promise<RawQuestion[]> {
-  const url = "https://api.groq.com/openai/v1/chat/completions";
+async function generateBatchOpenAIShape(params: {
+  url: string;
+  apiKey: string;
+  model: string;
+  providerLabel: string;
+  input: BatchInput;
+}): Promise<RawQuestion[]> {
+  const { url, apiKey, model, providerLabel, input } = params;
   const body = JSON.stringify({
-    model: GROQ_MODEL,
+    model,
     messages: [
       {
         role: "system",
@@ -430,13 +434,15 @@ async function generateBatchGroq(
         continue;
       }
       throw new Error(
-        "Hit Groq's rate limit. Wait a minute and try again — the next request usually goes through.",
+        `Hit ${providerLabel}'s rate limit. Wait a minute and try again.`,
       );
     }
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Groq API error (${res.status}): ${text.slice(0, 300)}`);
+      throw new Error(
+        `${providerLabel} API error (${res.status}): ${text.slice(0, 300)}`,
+      );
     }
 
     const json = (await res.json()) as {
@@ -451,7 +457,33 @@ async function generateBatchGroq(
       return [];
     }
   }
-  throw new Error("Groq request failed.");
+  throw new Error(`${providerLabel} request failed.`);
+}
+
+async function generateBatchGroq(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  return generateBatchOpenAIShape({
+    url: "https://api.groq.com/openai/v1/chat/completions",
+    apiKey,
+    model: GROQ_MODEL,
+    providerLabel: "Groq",
+    input,
+  });
+}
+
+async function generateBatchCerebras(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  return generateBatchOpenAIShape({
+    url: "https://api.cerebras.ai/v1/chat/completions",
+    apiKey,
+    model: CEREBRAS_MODEL,
+    providerLabel: "Cerebras",
+    input,
+  });
 }
 
 async function generateBatch(
@@ -460,13 +492,17 @@ async function generateBatch(
 ): Promise<Question[]> {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
+  const cerebrasKey = process.env.CEREBRAS_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
 
   let raws: RawQuestion[] = [];
   let lastErr: unknown = null;
 
-  // Order: Anthropic (best quality, paid) → Groq (fast, generous free tier)
-  // → Gemini (free fallback). Each provider falls through to the next on error.
+  // Provider chain (each falls through to the next on error/rate-limit):
+  //   Anthropic (best quality, paid)
+  //   → Groq (fast, 30 RPM free)
+  //   → Cerebras (fastest, more TPM headroom for big quizzes)
+  //   → Gemini (free fallback)
   if (anthropicKey) {
     try {
       raws = await generateBatchAnthropic(anthropicKey, input);
@@ -485,6 +521,15 @@ async function generateBatch(
     }
   }
 
+  if (raws.length === 0 && cerebrasKey) {
+    try {
+      raws = await generateBatchCerebras(cerebrasKey, input);
+    } catch (err) {
+      lastErr = err;
+      console.warn("Cerebras generation failed, falling through:", err);
+    }
+  }
+
   if (raws.length === 0 && geminiKey) {
     try {
       raws = await generateBatchGemini(geminiKey, input);
@@ -495,9 +540,9 @@ async function generateBatch(
 
   if (raws.length === 0) {
     if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
-    if (!anthropicKey && !groqKey && !geminiKey) {
+    if (!anthropicKey && !groqKey && !cerebrasKey && !geminiKey) {
       throw new Error(
-        "Set ANTHROPIC_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+        "Set ANTHROPIC_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
       );
     }
     return [];
@@ -526,10 +571,11 @@ export async function generateQuizFromNotes({
   if (
     !process.env.ANTHROPIC_API_KEY &&
     !process.env.GROQ_API_KEY &&
+    !process.env.CEREBRAS_API_KEY &&
     !process.env.GEMINI_API_KEY
   ) {
     throw new Error(
-      "Set ANTHROPIC_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+      "Set ANTHROPIC_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
     );
   }
 
