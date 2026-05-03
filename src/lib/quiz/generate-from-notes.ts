@@ -519,7 +519,10 @@ async function generateBatch(
   ): Promise<void> => {
     try {
       raws = await fn();
-      if (raws.length === 0) failures.push(`${label}: returned 0 questions`);
+      if (raws.length === 0) {
+        failures.push(`${label}: returned 0 questions`);
+        console.error(`[generate-quiz] ${label} returned 0 questions`);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       failures.push(`${label}: ${msg}`);
