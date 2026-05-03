@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type {
   BowTieQuestion,
   FillInTheBlankQuestion,
@@ -18,7 +17,6 @@ const MAX_CONCURRENT_BATCHES = 3;
 // Pause between waves so a burst-then-burst pattern doesn't trip RPM windows
 // on Gemini specifically (10 calls in <60s would otherwise 429 the tail).
 const INTER_WAVE_DELAY_MS = 1500;
-const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
 // Groq free tier caps at 6k TPM on every public model — far below a typical
 // notes batch (~18k tokens), so this provider will 413 for big uploads and
@@ -292,52 +290,6 @@ interface BatchInput {
   count: number;
 }
 
-async function generateBatchAnthropic(
-  apiKey: string,
-  input: BatchInput,
-): Promise<RawQuestion[]> {
-  const client = new Anthropic({ apiKey });
-  const response = await client.messages.create({
-    model: ANTHROPIC_MODEL,
-    max_tokens: 16000,
-    system: [
-      {
-        type: "text",
-        text: `${systemPrompt(input.allowedTypes)}\n\nYou MUST respond by calling the submit_questions tool with your questions. Do not write anything outside the tool call.`,
-        cache_control: { type: "ephemeral" },
-      },
-    ],
-    tools: [
-      {
-        name: "submit_questions",
-        description:
-          "Submit NCLEX-style practice questions derived strictly from the user's notes.",
-        input_schema: questionsSchema as unknown as Anthropic.Tool["input_schema"],
-      },
-    ],
-    tool_choice: { type: "tool", name: "submit_questions" },
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: userPrompt(input.notes, input.allowedTypes, input.count),
-            cache_control: { type: "ephemeral" },
-          },
-        ],
-      },
-    ],
-  });
-
-  const toolBlock = response.content.find(
-    (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
-  );
-  if (!toolBlock) return [];
-  const data = toolBlock.input as { questions?: RawQuestion[] };
-  return Array.isArray(data.questions) ? data.questions : [];
-}
-
 async function generateBatchGemini(
   apiKey: string,
   input: BatchInput,
@@ -538,7 +490,6 @@ async function generateBatch(
   input: BatchInput,
   batchIdx: number,
 ): Promise<Question[]> {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const cerebrasKey = process.env.CEREBRAS_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
@@ -563,17 +514,11 @@ async function generateBatch(
     }
   };
 
-  // Provider chain (each falls through to the next on error/rate-limit):
-  //   Anthropic (best quality, paid — only if explicitly configured)
-  //   → Cerebras (fastest inference, most TPM headroom for big quizzes)
+  // Provider chain — each falls through to the next on error/rate-limit:
+  //   Cerebras (fastest inference, most TPM headroom for big quizzes)
   //   → Groq (fast, 30 RPM free)
   //   → Gemini (free fallback)
-  if (anthropicKey) {
-    await tryProvider("Anthropic", () =>
-      generateBatchAnthropic(anthropicKey, input),
-    );
-  }
-  if (raws.length === 0 && cerebrasKey) {
+  if (cerebrasKey) {
     await tryProvider("Cerebras", () =>
       generateBatchCerebras(cerebrasKey, input),
     );
@@ -586,9 +531,9 @@ async function generateBatch(
   }
 
   if (raws.length === 0) {
-    if (!anthropicKey && !groqKey && !cerebrasKey && !geminiKey) {
+    if (!groqKey && !cerebrasKey && !geminiKey) {
       throw new Error(
-        "Set ANTHROPIC_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+        "Set CEREBRAS_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
       );
     }
     const summary = failures.length > 0 ? failures.join(" | ") : "no providers configured";
@@ -616,13 +561,12 @@ export async function generateQuizFromNotes({
   count,
 }: GenerateRequest): Promise<Question[]> {
   if (
-    !process.env.ANTHROPIC_API_KEY &&
-    !process.env.GROQ_API_KEY &&
     !process.env.CEREBRAS_API_KEY &&
+    !process.env.GROQ_API_KEY &&
     !process.env.GEMINI_API_KEY
   ) {
     throw new Error(
-      "Set ANTHROPIC_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+      "Set CEREBRAS_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
     );
   }
 
@@ -641,7 +585,6 @@ export async function generateQuizFromNotes({
   console.log(
     "[generate-quiz] providers configured:",
     JSON.stringify({
-      anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
       cerebras: Boolean(process.env.CEREBRAS_API_KEY),
       groq: Boolean(process.env.GROQ_API_KEY),
       gemini: Boolean(process.env.GEMINI_API_KEY),
