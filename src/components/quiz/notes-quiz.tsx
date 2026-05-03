@@ -17,7 +17,7 @@ const TYPE_OPTIONS: { value: ItemType; label: string; hint: string }[] = [
 
 const COUNT_PRESETS = [5, 10, 25, 50, 100];
 
-type Phase = "compose" | "generating" | "ready" | "error";
+type Phase = "compose" | "extracting" | "generating" | "ready" | "error";
 
 export function NotesQuiz() {
   const [notes, setNotes] = useState("");
@@ -39,16 +39,35 @@ export function NotesQuiz() {
   }
 
   async function onFile(file: File) {
-    if (!/\.(txt|md|markdown)$/i.test(file.name)) {
-      setError("Upload a .txt or .md file, or paste your notes directly.");
+    if (!/\.(txt|md|markdown|pdf|docx)$/i.test(file.name)) {
+      setError("Upload a PDF, DOCX, TXT, or MD file.");
       setPhase("error");
       return;
     }
-    const text = await file.text();
-    setNotes(text);
-    setFileName(file.name);
     setError(null);
-    setPhase("compose");
+    setPhase("extracting");
+    setFileName(file.name);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/extract-notes", { method: "POST", body: fd });
+      const data: { text?: string; error?: string; pageCount?: number } =
+        await res.json();
+      if (!res.ok || !data.text) {
+        throw new Error(data.error || `Couldn't read ${file.name}.`);
+      }
+      if (data.text.trim().length < 80) {
+        throw new Error(
+          "That file came out almost empty. If it's a scanned PDF, try a text-based one or paste the notes manually.",
+        );
+      }
+      setNotes(data.text);
+      setPhase("compose");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't read that file.");
+      setPhase("error");
+      setFileName(null);
+    }
   }
 
   async function generate() {
@@ -100,7 +119,11 @@ export function NotesQuiz() {
     );
   }
 
-  const canGenerate = notes.trim().length >= 80 && types.length > 0 && phase !== "generating";
+  const canGenerate =
+    notes.trim().length >= 80 &&
+    types.length > 0 &&
+    phase !== "generating" &&
+    phase !== "extracting";
 
   return (
     <div className="space-y-10">
@@ -127,7 +150,7 @@ export function NotesQuiz() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".txt,.md,.markdown,text/plain,text/markdown"
+              accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -138,9 +161,10 @@ export function NotesQuiz() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="rounded-full border border-ink/15 bg-paper px-4 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft transition-colors duration-200 hover:border-ink/40 hover:text-ink"
+              disabled={phase === "extracting" || phase === "generating"}
+              className="rounded-full border border-ink/15 bg-paper px-4 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-ink-soft transition-colors duration-200 hover:border-ink/40 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Upload .txt / .md
+              {phase === "extracting" ? "Reading…" : "Upload PDF / DOCX / TXT"}
             </button>
           </div>
         </div>
