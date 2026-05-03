@@ -20,13 +20,13 @@ const MAX_CONCURRENT_BATCHES = 3;
 const INTER_WAVE_DELAY_MS = 1500;
 const ANTHROPIC_MODEL = "claude-opus-4-7";
 const GEMINI_MODEL = "gemini-2.5-flash";
-// Free-tier Groq has only 12k TPM on the 70b model — a single notes batch
-// (system prompt + uploaded notes) routinely exceeds that. The 8b-instant
-// model has ~30k TPM headroom and handles NCLEX-style structured output.
+// Groq free tier caps at 6k TPM on every public model — far below a typical
+// notes batch (~18k tokens), so this provider will 413 for big uploads and
+// fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// Cerebras' free tier exposes scout-17b reliably; the bare "llama-3.3-70b"
-// id 404'd on this account.
-const CEREBRAS_MODEL = "llama-4-scout-17b-16e-instruct";
+// Cerebras' newer Llama 3.3/Llama 4 ids 404 on this account; their original
+// 8b model is universally available and has plenty of TPM for big notes.
+const CEREBRAS_MODEL = "llama3.1-8b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -360,7 +360,10 @@ async function generateBatchGemini(
     },
   });
 
-  const RETRY_DELAYS_MS = [2000, 6000, 15000];
+  // Gemini free tier is 10 RPM — the throttle window is 60s. Retries need to
+  // span at least that long for a single batch to recover; the previous 23s
+  // budget always exhausted before the window reset.
+  const RETRY_DELAYS_MS = [3000, 10000, 25000, 45000];
   let lastError: string | null = null;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const res = await fetch(url, {
@@ -376,7 +379,7 @@ async function generateBatchGemini(
         continue;
       }
       throw new Error(
-        "All free-tier providers are rate-limited right now. Wait a minute and try again.",
+        "Gemini rate-limited (429) — exhausted retries.",
       );
     }
 
