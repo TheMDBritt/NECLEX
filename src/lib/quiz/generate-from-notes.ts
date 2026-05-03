@@ -24,9 +24,9 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 // notes batch (~18k tokens), so this provider will 413 for big uploads and
 // fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// Cerebras' newer Llama 3.3/Llama 4 ids 404 on this account; their original
-// 8b model is universally available and has plenty of TPM for big notes.
-const CEREBRAS_MODEL = "llama3.1-8b";
+// Larger Cerebras models 404 on this account's plan; qwen-3-32b is reliably
+// in the free tier and produces stable JSON for structured-output schemas.
+const CEREBRAS_MODEL = "qwen-3-32b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -360,10 +360,8 @@ async function generateBatchGemini(
     },
   });
 
-  // Gemini free tier is 10 RPM — the throttle window is 60s. Retries need to
-  // span at least that long for a single batch to recover; the previous 23s
-  // budget always exhausted before the window reset.
-  const RETRY_DELAYS_MS = [3000, 10000, 25000, 45000];
+  // Vercel Hobby tier caps function duration at 60s. Stay well under that.
+  const RETRY_DELAYS_MS = [2000, 5000, 12000];
   let lastError: string | null = null;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const res = await fetch(url, {

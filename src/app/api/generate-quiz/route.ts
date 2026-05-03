@@ -3,7 +3,9 @@ import { generateQuizFromNotes } from "@/lib/quiz/generate-from-notes";
 import type { ItemType } from "@/lib/types/question";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+// Vercel Hobby tier caps at 60s regardless of this value. Setting it
+// explicitly so the budget assumed by the generator matches reality.
+export const maxDuration = 60;
 
 const VALID_TYPES: ItemType[] = [
   "multiple_choice",
