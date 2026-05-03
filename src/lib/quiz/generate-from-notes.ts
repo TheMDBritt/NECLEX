@@ -10,7 +10,8 @@ import type {
 } from "@/lib/types/question";
 
 const PER_BATCH = 12;
-const MODEL = "claude-opus-4-7";
+const ANTHROPIC_MODEL = "claude-opus-4-7";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -46,103 +47,64 @@ const optionSchema = {
     },
   },
   required: ["label", "isCorrect", "feedback"],
-  additionalProperties: false,
 } as const;
 
-const questionTool: Anthropic.Tool = {
-  name: "submit_questions",
-  description:
-    "Submit NCLEX-style practice questions derived strictly from the user's notes.",
-  input_schema: {
-    type: "object",
-    properties: {
-      questions: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            itemType: {
-              type: "string",
-              enum: [
-                "multiple_choice",
-                "multiple_response",
-                "fill_in_the_blank",
-                "bow_tie",
-              ],
-            },
-            stem: {
-              type: "string",
-              description: "The question stem. Clinically realistic.",
-            },
-            options: {
-              type: "array",
-              description:
-                "For multiple_choice (exactly 4, one correct) or multiple_response (5–6, 2–4 correct).",
-              items: optionSchema,
-            },
-            acceptedMin: {
-              type: "number",
-              description: "fill_in_the_blank: minimum accepted numeric answer.",
-            },
-            acceptedMax: {
-              type: "number",
-              description: "fill_in_the_blank: maximum accepted numeric answer.",
-            },
-            units: {
-              type: "string",
-              description:
-                "fill_in_the_blank: unit label shown to learner (e.g., mL/hr).",
-            },
-            decimals: {
-              type: "number",
-              description: "fill_in_the_blank: decimal places to display.",
-            },
-            actions: {
-              type: "object",
-              description: "bow_tie: actions section.",
-              properties: {
-                selectCount: { type: "number" },
-                options: { type: "array", items: optionSchema },
-              },
-              required: ["selectCount", "options"],
-              additionalProperties: false,
-            },
-            condition: {
-              type: "object",
-              description: "bow_tie: condition section (single-select).",
-              properties: {
-                options: { type: "array", items: optionSchema },
-              },
-              required: ["options"],
-              additionalProperties: false,
-            },
-            monitor: {
-              type: "object",
-              description: "bow_tie: parameters to monitor section.",
-              properties: {
-                selectCount: { type: "number" },
-                options: { type: "array", items: optionSchema },
-              },
-              required: ["selectCount", "options"],
-              additionalProperties: false,
-            },
-            rationaleBody: {
-              type: "string",
-              description:
-                "2–4 sentence explanation grounded in the notes. No outside facts.",
-            },
-            bodySystem: { type: "string" },
-            specialty: { type: "string" },
+const questionsSchema = {
+  type: "object",
+  properties: {
+    questions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          itemType: {
+            type: "string",
+            enum: [
+              "multiple_choice",
+              "multiple_response",
+              "fill_in_the_blank",
+              "bow_tie",
+            ],
           },
-          required: ["itemType", "stem", "rationaleBody"],
-          additionalProperties: false,
+          stem: { type: "string" },
+          options: { type: "array", items: optionSchema },
+          acceptedMin: { type: "number" },
+          acceptedMax: { type: "number" },
+          units: { type: "string" },
+          decimals: { type: "number" },
+          actions: {
+            type: "object",
+            properties: {
+              selectCount: { type: "number" },
+              options: { type: "array", items: optionSchema },
+            },
+            required: ["selectCount", "options"],
+          },
+          condition: {
+            type: "object",
+            properties: {
+              options: { type: "array", items: optionSchema },
+            },
+            required: ["options"],
+          },
+          monitor: {
+            type: "object",
+            properties: {
+              selectCount: { type: "number" },
+              options: { type: "array", items: optionSchema },
+            },
+            required: ["selectCount", "options"],
+          },
+          rationaleBody: { type: "string" },
+          bodySystem: { type: "string" },
+          specialty: { type: "string" },
         },
+        required: ["itemType", "stem", "rationaleBody"],
       },
     },
-    required: ["questions"],
-    additionalProperties: false,
   },
-};
+  required: ["questions"],
+} as const;
 
 function systemPrompt(allowedTypes: ItemType[]): string {
   const allowed = allowedTypes.join(", ");
@@ -164,9 +126,11 @@ WRITING STYLE
 - Stems are clinically realistic, calm, and unambiguous.
 - Each option's feedback is one sentence and explains why it is right or wrong using only what's in the notes.
 - The rationale (rationaleBody) is 2–4 sentences. Re-anchor the underlying concept so the learner can carry it forward.
-- Tag bodySystem (e.g., cardiac, neuro, renal) and specialty (e.g., med-surg, peds, ob, mental-health) when the notes make it obvious; omit otherwise.
+- Tag bodySystem (e.g., cardiac, neuro, renal) and specialty (e.g., med-surg, peds, ob, mental-health) when the notes make it obvious; omit otherwise.`;
+}
 
-You MUST respond by calling the submit_questions tool with your questions. Do not write anything outside the tool call.`;
+function userPrompt(notes: string, allowedTypes: ItemType[], count: number): string {
+  return `NOTES (your only source of truth):\n\n${notes}\n\n---\n\nGenerate ${count} NCLEX practice question${count === 1 ? "" : "s"} from these notes. Allowed item types: ${allowedTypes.join(", ")}. Mix the types proportionally to what fits the material. Stay strictly within the notes.`;
 }
 
 function asOption(raw: RawOption, idx: number): Option {
@@ -279,26 +243,35 @@ function toQuestion(raw: RawQuestion, batchIdx: number, idx: number): Question |
   }
 }
 
-async function generateBatch(params: {
+interface BatchInput {
   notes: string;
   allowedTypes: ItemType[];
   count: number;
-  batchIdx: number;
-  client: Anthropic;
-}): Promise<Question[]> {
-  const { notes, allowedTypes, count, batchIdx, client } = params;
+}
 
+async function generateBatchAnthropic(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  const client = new Anthropic({ apiKey });
   const response = await client.messages.create({
-    model: MODEL,
+    model: ANTHROPIC_MODEL,
     max_tokens: 16000,
     system: [
       {
         type: "text",
-        text: systemPrompt(allowedTypes),
+        text: `${systemPrompt(input.allowedTypes)}\n\nYou MUST respond by calling the submit_questions tool with your questions. Do not write anything outside the tool call.`,
         cache_control: { type: "ephemeral" },
       },
     ],
-    tools: [questionTool],
+    tools: [
+      {
+        name: "submit_questions",
+        description:
+          "Submit NCLEX-style practice questions derived strictly from the user's notes.",
+        input_schema: questionsSchema as unknown as Anthropic.Tool["input_schema"],
+      },
+    ],
     tool_choice: { type: "tool", name: "submit_questions" },
     messages: [
       {
@@ -306,7 +279,7 @@ async function generateBatch(params: {
         content: [
           {
             type: "text",
-            text: `NOTES (your only source of truth):\n\n${notes}\n\n---\n\nGenerate ${count} NCLEX practice question${count === 1 ? "" : "s"} from these notes. Allowed item types: ${allowedTypes.join(", ")}. Mix the types proportionally to what fits the material. Stay strictly within the notes.`,
+            text: userPrompt(input.notes, input.allowedTypes, input.count),
             cache_control: { type: "ephemeral" },
           },
         ],
@@ -318,12 +291,97 @@ async function generateBatch(params: {
     (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
   );
   if (!toolBlock) return [];
-  const input = toolBlock.input as { questions?: RawQuestion[] };
-  if (!Array.isArray(input.questions)) return [];
+  const data = toolBlock.input as { questions?: RawQuestion[] };
+  return Array.isArray(data.questions) ? data.questions : [];
+}
+
+async function generateBatchGemini(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: systemPrompt(input.allowedTypes) }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: userPrompt(input.notes, input.allowedTypes, input.count) }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: questionsSchema,
+        maxOutputTokens: 16000,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Gemini API error (${res.status}): ${body.slice(0, 300)}`);
+  }
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) return [];
+  let parsed: { questions?: RawQuestion[] };
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  return Array.isArray(parsed.questions) ? parsed.questions : [];
+}
+
+async function generateBatch(
+  input: BatchInput,
+  batchIdx: number,
+): Promise<Question[]> {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  let raws: RawQuestion[] = [];
+  let lastErr: unknown = null;
+
+  if (anthropicKey) {
+    try {
+      raws = await generateBatchAnthropic(anthropicKey, input);
+    } catch (err) {
+      lastErr = err;
+      console.warn("Anthropic generation failed, attempting Gemini fallback:", err);
+    }
+  }
+
+  if (raws.length === 0 && geminiKey) {
+    try {
+      raws = await generateBatchGemini(geminiKey, input);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  if (raws.length === 0) {
+    if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+    if (!anthropicKey && !geminiKey) {
+      throw new Error(
+        "Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env.local to enable quiz generation.",
+      );
+    }
+    return [];
+  }
 
   const questions: Question[] = [];
-  input.questions.forEach((raw, idx) => {
-    if (!allowedTypes.includes(raw.itemType)) return;
+  raws.forEach((raw, idx) => {
+    if (!input.allowedTypes.includes(raw.itemType)) return;
     const q = toQuestion(raw, batchIdx, idx);
     if (q) questions.push(q);
   });
@@ -341,13 +399,11 @@ export async function generateQuizFromNotes({
   itemTypes,
   count,
 }: GenerateRequest): Promise<Question[]> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.GEMINI_API_KEY) {
     throw new Error(
-      "ANTHROPIC_API_KEY is not set. Add it to .env.local to enable quiz generation.",
+      "Set ANTHROPIC_API_KEY or GEMINI_API_KEY in .env.local to enable quiz generation.",
     );
   }
-  const client = new Anthropic({ apiKey });
 
   const trimmedNotes = notes.trim();
   if (trimmedNotes.length < 80) {
@@ -356,9 +412,10 @@ export async function generateQuizFromNotes({
     );
   }
 
-  const allowedTypes = itemTypes.length > 0
-    ? itemTypes
-    : (["multiple_choice", "multiple_response"] as ItemType[]);
+  const allowedTypes =
+    itemTypes.length > 0
+      ? itemTypes
+      : (["multiple_choice", "multiple_response"] as ItemType[]);
 
   const targetCount = Math.max(1, Math.min(100, Math.floor(count)));
 
@@ -374,13 +431,14 @@ export async function generateQuizFromNotes({
 
   const results = await Promise.all(
     batches.map((b) =>
-      generateBatch({
-        notes: trimmedNotes,
-        allowedTypes,
-        count: b.count,
-        batchIdx: b.batchIdx,
-        client,
-      }),
+      generateBatch(
+        {
+          notes: trimmedNotes,
+          allowedTypes,
+          count: b.count,
+        },
+        b.batchIdx,
+      ),
     ),
   );
 
