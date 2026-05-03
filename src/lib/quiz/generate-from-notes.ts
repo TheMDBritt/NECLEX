@@ -594,6 +594,16 @@ export async function generateQuizFromNotes({
       ? itemTypes
       : (["multiple_choice", "multiple_response"] as ItemType[]);
 
+  console.log(
+    "[generate-quiz] providers configured:",
+    JSON.stringify({
+      anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
+      cerebras: Boolean(process.env.CEREBRAS_API_KEY),
+      groq: Boolean(process.env.GROQ_API_KEY),
+      gemini: Boolean(process.env.GEMINI_API_KEY),
+    }),
+  );
+
   const targetCount = Math.max(1, Math.min(100, Math.floor(count)));
 
   const batches: { batchIdx: number; count: number }[] = [];
