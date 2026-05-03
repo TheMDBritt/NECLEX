@@ -22,10 +22,11 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 // notes batch (~18k tokens), so this provider will 413 for big uploads and
 // fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// qwen-3-32b accepted requests but kept returning unparseable output on this
-// notes set. gpt-oss-120b is on Cerebras' free tier and handles
-// strict-JSON system prompts more cleanly.
-const CEREBRAS_MODEL = "gpt-oss-120b";
+// On this Cerebras account, llama-3.3-70b / llama-4-scout / gpt-oss-120b
+// all 404. qwen-3-32b is the only id that actually returns content; pair it
+// with the lenient JSON extractor to handle qwen's tendency to wrap output
+// in markdown fences or thinking-prefix prose.
+const CEREBRAS_MODEL = "qwen-3-32b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
