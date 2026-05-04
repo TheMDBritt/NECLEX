@@ -501,6 +501,11 @@ async function generateBatchFreeLLM(
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Origin: "https://apifreellm.com",
+      Referer: "https://apifreellm.com/",
     },
     body: JSON.stringify({ message: combined }),
     signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
