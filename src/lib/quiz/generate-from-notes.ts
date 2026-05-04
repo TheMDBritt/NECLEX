@@ -1,3 +1,4 @@
+import Anthropic from "@anthropic-ai/sdk";
 import type {
   BowTieQuestion,
   FillInTheBlankQuestion,
@@ -19,6 +20,9 @@ const MAX_CHARS_PER_CHUNK = 14000;
 // tasks and pace them just over 1s apart to stay under the limit.
 const MAX_CONCURRENT_TASKS = 1;
 const INTER_WAVE_DELAY_MS = 1100;
+// Haiku 4.5 — best cost/quality balance for NCLEX-style questions. Roughly
+// $0.03 per 10-question quiz on 18k-token notes; ~160 quizzes per $5.
+const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GROQ_MODEL = "llama-3.1-8b-instant";
 // llama3.1-8b: 8k context, 30 RPM, 60k TPM on this account. Combined with
@@ -289,6 +293,51 @@ interface BatchInput {
   count: number;
 }
 
+async function generateBatchAnthropic(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  const client = new Anthropic({ apiKey, maxRetries: 2 });
+  const response = await client.messages.create({
+    model: ANTHROPIC_MODEL,
+    max_tokens: 8000,
+    system: [
+      {
+        type: "text",
+        text: `${systemPrompt(input.allowedTypes)}\n\nYou MUST respond by calling the submit_questions tool. Do not write anything outside the tool call.`,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
+    tools: [
+      {
+        name: "submit_questions",
+        description:
+          "Submit NCLEX-style practice questions derived strictly from the user's notes.",
+        input_schema: questionsSchema as unknown as Anthropic.Tool["input_schema"],
+      },
+    ],
+    tool_choice: { type: "tool", name: "submit_questions" },
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: userPrompt(input.notes, input.allowedTypes, input.count),
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+      },
+    ],
+  });
+  const toolBlock = response.content.find(
+    (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
+  );
+  if (!toolBlock) return [];
+  const data = toolBlock.input as { questions?: RawQuestion[] };
+  return Array.isArray(data.questions) ? data.questions : [];
+}
+
 async function generateBatchGemini(
   apiKey: string,
   input: BatchInput,
@@ -538,6 +587,7 @@ async function generateBatch(
   input: BatchInput,
   batchIdx: number,
 ): Promise<Question[]> {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const cerebrasKey = process.env.CEREBRAS_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
@@ -563,13 +613,15 @@ async function generateBatch(
     }
   };
 
-  // Cerebras llama3.1-8b is the only viable provider for this account's
-  // notes setup. Groq's 6k TPM is too small even for chunked notes, Gemini's
-  // 10 RPM gets exhausted on any retry, and apifreellm sits behind a
-  // Cloudflare bot wall that blocks server-side calls. Falling through to
-  // them just burns the function's 60s budget. Gemini stays as the single
-  // last-ditch fallback because a fresh attempt does occasionally succeed.
-  if (cerebrasKey) {
+  // Anthropic primary — paid tier, no rate-limit headaches, structured tool
+  // output is rock-solid. Falls through to Cerebras then Gemini if for some
+  // reason the Anthropic call fails.
+  if (anthropicKey) {
+    await tryProvider("Anthropic", () =>
+      generateBatchAnthropic(anthropicKey, input),
+    );
+  }
+  if (raws.length === 0 && cerebrasKey) {
     await tryProvider("Cerebras", () =>
       generateBatchCerebras(cerebrasKey, input),
     );
@@ -577,8 +629,7 @@ async function generateBatch(
   if (raws.length === 0 && geminiKey) {
     await tryProvider("Gemini", () => generateBatchGemini(geminiKey, input));
   }
-  // Groq / apifreellm intentionally skipped — they always fail for this
-  // notes size, and their failures are slow enough to time out the function.
+  // Groq / apifreellm intentionally skipped — they always fail for big notes.
   void groqKey;
   void freeLLMKey;
 
@@ -638,6 +689,7 @@ export async function generateQuizFromNotes({
   console.log(
     "[generate-quiz] providers configured:",
     JSON.stringify({
+      anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
       cerebras: Boolean(process.env.CEREBRAS_API_KEY),
       groq: Boolean(process.env.GROQ_API_KEY),
       gemini: Boolean(process.env.GEMINI_API_KEY),
@@ -647,27 +699,31 @@ export async function generateQuizFromNotes({
 
   const targetCount = Math.max(1, Math.min(100, Math.floor(count)));
 
-  // Split notes into chunks small enough to fit Cerebras llama3.1-8b's 8k
-  // context window. Each chunk becomes the source of a few questions; the
-  // model's 30 RPM means we can fan many of these out in parallel without
-  // hitting rate limits.
-  const chunks = chunkNotes(trimmedNotes, MAX_CHARS_PER_CHUNK);
+  // Anthropic has 200k context, so one call can take the full notes and
+  // produce all requested questions. Chunking is only needed for Cerebras
+  // llama3.1-8b's 8k window. When Anthropic is configured, send a single
+  // task with full notes — far cheaper and faster.
+  const useFullNotes = Boolean(process.env.ANTHROPIC_API_KEY);
+  const chunks = useFullNotes
+    ? [trimmedNotes]
+    : chunkNotes(trimmedNotes, MAX_CHARS_PER_CHUNK);
 
-  // Distribute the requested question count across chunks round-robin, with
-  // each task asking for at most QUESTIONS_PER_TASK so the model stays well
-  // inside its output budget.
   const tasks: { taskIdx: number; chunk: string; count: number }[] = [];
-  let remaining = targetCount;
-  let taskIdx = 0;
-  while (remaining > 0) {
-    const take = Math.min(QUESTIONS_PER_TASK, remaining);
-    tasks.push({
-      taskIdx,
-      chunk: chunks[taskIdx % chunks.length]!,
-      count: take,
-    });
-    remaining -= take;
-    taskIdx += 1;
+  if (useFullNotes) {
+    tasks.push({ taskIdx: 0, chunk: trimmedNotes, count: targetCount });
+  } else {
+    let remaining = targetCount;
+    let taskIdx = 0;
+    while (remaining > 0) {
+      const take = Math.min(QUESTIONS_PER_TASK, remaining);
+      tasks.push({
+        taskIdx,
+        chunk: chunks[taskIdx % chunks.length]!,
+        count: take,
+      });
+      remaining -= take;
+      taskIdx += 1;
+    }
   }
 
   console.log(
