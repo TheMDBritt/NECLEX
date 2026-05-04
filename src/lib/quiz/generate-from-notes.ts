@@ -489,6 +489,49 @@ async function generateBatchCerebras(
   });
 }
 
+async function generateBatchFreeLLM(
+  apiKey: string,
+  input: BatchInput,
+): Promise<RawQuestion[]> {
+  // apifreellm has no system-prompt or JSON-mode support — pack everything
+  // into one message and rely on the lenient JSON extractor for the reply.
+  const combined = `${systemPrompt(input.allowedTypes)}\n\nRespond with a single JSON object exactly matching this schema:\n${JSON.stringify(questionsSchema)}\n\nReturn only the JSON. No prose, no markdown fences.\n\n${userPrompt(input.notes, input.allowedTypes, input.count)}`;
+  const res = await fetch("https://apifreellm.com/api/v1/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({ message: combined }),
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+  });
+  if (res.status === 429) {
+    throw new Error("apifreellm rate-limited (429)");
+  }
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `apifreellm API error (${res.status}): ${text.slice(0, 300)}`,
+    );
+  }
+  const json = (await res.json()) as { success?: boolean; response?: string };
+  if (!json.success || !json.response) {
+    console.error("[generate-quiz] apifreellm empty/failed response");
+    return [];
+  }
+  const parsed = extractJsonObject(json.response) as
+    | { questions?: RawQuestion[] }
+    | null;
+  if (!parsed) {
+    console.error(
+      "[generate-quiz] apifreellm unparseable response (first 200 chars):",
+      json.response.slice(0, 200),
+    );
+    return [];
+  }
+  return Array.isArray(parsed.questions) ? parsed.questions : [];
+}
+
 async function generateBatch(
   input: BatchInput,
   batchIdx: number,
@@ -496,6 +539,7 @@ async function generateBatch(
   const cerebrasKey = process.env.CEREBRAS_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
+  const freeLLMKey = process.env.APIFREELLM_API_KEY;
 
   let raws: RawQuestion[] = [];
   const failures: string[] = [];
@@ -518,9 +562,7 @@ async function generateBatch(
   };
 
   // Provider chain — each falls through to the next on error/rate-limit:
-  //   Cerebras (fastest inference, most TPM headroom for big quizzes)
-  //   → Groq (fast, 30 RPM free)
-  //   → Gemini (free fallback)
+  //   Cerebras → Groq → Gemini → apifreellm
   if (cerebrasKey) {
     await tryProvider("Cerebras", () =>
       generateBatchCerebras(cerebrasKey, input),
@@ -532,11 +574,16 @@ async function generateBatch(
   if (raws.length === 0 && geminiKey) {
     await tryProvider("Gemini", () => generateBatchGemini(geminiKey, input));
   }
+  if (raws.length === 0 && freeLLMKey) {
+    await tryProvider("apifreellm", () =>
+      generateBatchFreeLLM(freeLLMKey, input),
+    );
+  }
 
   if (raws.length === 0) {
-    if (!groqKey && !cerebrasKey && !geminiKey) {
+    if (!groqKey && !cerebrasKey && !geminiKey && !freeLLMKey) {
       throw new Error(
-        "Set CEREBRAS_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+        "Set CEREBRAS_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, or APIFREELLM_API_KEY in .env.local to enable quiz generation.",
       );
     }
     const summary = failures.length > 0 ? failures.join(" | ") : "no providers configured";
@@ -566,10 +613,11 @@ export async function generateQuizFromNotes({
   if (
     !process.env.CEREBRAS_API_KEY &&
     !process.env.GROQ_API_KEY &&
-    !process.env.GEMINI_API_KEY
+    !process.env.GEMINI_API_KEY &&
+    !process.env.APIFREELLM_API_KEY
   ) {
     throw new Error(
-      "Set CEREBRAS_API_KEY, GROQ_API_KEY, or GEMINI_API_KEY in .env.local to enable quiz generation.",
+      "Set CEREBRAS_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, or APIFREELLM_API_KEY in .env.local to enable quiz generation.",
     );
   }
 
@@ -591,6 +639,7 @@ export async function generateQuizFromNotes({
       cerebras: Boolean(process.env.CEREBRAS_API_KEY),
       groq: Boolean(process.env.GROQ_API_KEY),
       gemini: Boolean(process.env.GEMINI_API_KEY),
+      apifreellm: Boolean(process.env.APIFREELLM_API_KEY),
     }),
   );
 
