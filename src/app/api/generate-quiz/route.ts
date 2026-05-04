@@ -3,9 +3,9 @@ import { generateQuizFromNotes } from "@/lib/quiz/generate-from-notes";
 import type { ItemType } from "@/lib/types/question";
 
 export const runtime = "nodejs";
-// Vercel Hobby tier caps at 60s regardless of this value. Setting it
-// explicitly so the budget assumed by the generator matches reality.
-export const maxDuration = 60;
+// Vercel Pro allows up to 300s. Quiz generation can need that for big
+// chunked-notes runs that pace requests under Cerebras's 1 RPS cap.
+export const maxDuration = 300;
 
 const VALID_TYPES: ItemType[] = [
   "multiple_choice",

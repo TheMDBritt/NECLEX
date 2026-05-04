@@ -312,8 +312,8 @@ async function generateBatchGemini(
     },
   });
 
-  // Vercel Hobby tier caps function duration at 60s. Stay well under that.
-  const RETRY_DELAYS_MS = [3000, 8000];
+  // With Vercel Pro's 300s budget we can wait out Gemini's 60s RPM window.
+  const RETRY_DELAYS_MS = [3000, 10000, 25000, 45000];
   let lastError: string | null = null;
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const res = await fetch(url, {
