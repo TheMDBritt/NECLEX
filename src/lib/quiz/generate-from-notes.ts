@@ -22,7 +22,7 @@ const MAX_CONCURRENT_TASKS = 1;
 const INTER_WAVE_DELAY_MS = 1100;
 // Haiku 4.5 — best cost/quality balance for NCLEX-style questions. Roughly
 // $0.03 per 10-question quiz on 18k-token notes; ~160 quizzes per $5.
-const ANTHROPIC_MODEL = "claude-haiku-4-5";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GROQ_MODEL = "llama-3.1-8b-instant";
 // llama3.1-8b: 8k context, 30 RPM, 60k TPM on this account. Combined with
@@ -333,7 +333,13 @@ async function generateBatchAnthropic(
   const toolBlock = response.content.find(
     (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
   );
-  if (!toolBlock) return [];
+  if (!toolBlock) {
+    const textBlock = response.content.find(
+      (b): b is Anthropic.TextBlock => b.type === "text",
+    );
+    const preview = textBlock?.text?.slice(0, 200) ?? "(no text content)";
+    throw new Error(`Anthropic returned no tool_use. Text was: ${preview}`);
+  }
   const data = toolBlock.input as { questions?: RawQuestion[] };
   return Array.isArray(data.questions) ? data.questions : [];
 }
