@@ -12,6 +12,12 @@ import type {
 // Each task = one chunk of notes → up to QUESTIONS_PER_TASK questions.
 // llama3.1-8b output budget is ~1.5k tokens, comfortably 5 questions.
 const QUESTIONS_PER_TASK = 5;
+// Anthropic Haiku 4.5 with 16k max_tokens fits ~50 questions worth of
+// structured output, but keeping each call to 25 lets us run multiple
+// in parallel and recover gracefully if one batch fails.
+const ANTHROPIC_QUESTIONS_PER_BATCH = 25;
+// Anthropic has no per-second cap, so run several batches in parallel.
+const ANTHROPIC_CONCURRENCY = 4;
 // llama3.1-8b context is 8k. System prompt ~3k + output ~1.5k leaves ~3.5k
 // for the notes chunk. 4 chars/token ≈ 14k characters.
 const MAX_CHARS_PER_CHUNK = 14000;
@@ -713,32 +719,31 @@ export async function generateQuizFromNotes({
 
   const targetCount = Math.max(1, Math.min(100, Math.floor(count)));
 
-  // Anthropic has 200k context, so one call can take the full notes and
-  // produce all requested questions. Chunking is only needed for Cerebras
-  // llama3.1-8b's 8k window. When Anthropic is configured, send a single
-  // task with full notes — far cheaper and faster.
-  const useFullNotes = Boolean(process.env.ANTHROPIC_API_KEY);
-  const chunks = useFullNotes
+  // Anthropic has 200k context, so each task can take the full notes. Split
+  // big quizzes into batches of ANTHROPIC_QUESTIONS_PER_BATCH so each
+  // call's output fits inside max_tokens, then run several in parallel.
+  // For Cerebras-only setups, chunk the notes to fit its 8k window.
+  const useAnthropic = Boolean(process.env.ANTHROPIC_API_KEY);
+  const perTask = useAnthropic ? ANTHROPIC_QUESTIONS_PER_BATCH : QUESTIONS_PER_TASK;
+  const chunks = useAnthropic
     ? [trimmedNotes]
     : chunkNotes(trimmedNotes, MAX_CHARS_PER_CHUNK);
 
   const tasks: { taskIdx: number; chunk: string; count: number }[] = [];
-  if (useFullNotes) {
-    tasks.push({ taskIdx: 0, chunk: trimmedNotes, count: targetCount });
-  } else {
-    let remaining = targetCount;
-    let taskIdx = 0;
-    while (remaining > 0) {
-      const take = Math.min(QUESTIONS_PER_TASK, remaining);
-      tasks.push({
-        taskIdx,
-        chunk: chunks[taskIdx % chunks.length]!,
-        count: take,
-      });
-      remaining -= take;
-      taskIdx += 1;
-    }
+  let remaining = targetCount;
+  let taskIdx = 0;
+  while (remaining > 0) {
+    const take = Math.min(perTask, remaining);
+    tasks.push({
+      taskIdx,
+      chunk: chunks[taskIdx % chunks.length]!,
+      count: take,
+    });
+    remaining -= take;
+    taskIdx += 1;
   }
+  const concurrency = useAnthropic ? ANTHROPIC_CONCURRENCY : MAX_CONCURRENT_TASKS;
+  const interWaveDelay = useAnthropic ? 0 : INTER_WAVE_DELAY_MS;
 
   console.log(
     `[generate-quiz] ${chunks.length} chunk(s), ${tasks.length} task(s) for ${targetCount} questions`,
@@ -746,9 +751,9 @@ export async function generateQuizFromNotes({
 
   const results: Question[][] = [];
   let lastTaskError: unknown = null;
-  for (let i = 0; i < tasks.length; i += MAX_CONCURRENT_TASKS) {
-    if (i > 0) await sleep(INTER_WAVE_DELAY_MS);
-    const wave = tasks.slice(i, i + MAX_CONCURRENT_TASKS);
+  for (let i = 0; i < tasks.length; i += concurrency) {
+    if (i > 0 && interWaveDelay > 0) await sleep(interWaveDelay);
+    const wave = tasks.slice(i, i + concurrency);
     const waveResults = await Promise.allSettled(
       wave.map((t) =>
         generateBatch(
