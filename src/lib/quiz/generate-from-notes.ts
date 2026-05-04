@@ -22,11 +22,13 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 // notes batch (~18k tokens), so this provider will 413 for big uploads and
 // fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// On this Cerebras account, llama-3.3-70b / llama-4-scout / gpt-oss-120b
-// all 404. qwen-3-32b is the only id that actually returns content; pair it
-// with the lenient JSON extractor to handle qwen's tendency to wrap output
-// in markdown fences or thinking-prefix prose.
-const CEREBRAS_MODEL = "qwen-3-32b";
+// Per the dashboard, this account has exactly two Cerebras models:
+//   llama3.1-8b           — 8k context, too small for typical notes (~18k)
+//   qwen-3-235b-...-2507  — 65k context, 30k TPM, 1 RPM
+// Use the 235b qwen so big notes fit. The 1 RPM cap means parallel batches
+// will throttle, but a single-batch (≤10 question) request goes through
+// cleanly.
+const CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
