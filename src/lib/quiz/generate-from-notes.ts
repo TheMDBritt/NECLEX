@@ -300,7 +300,7 @@ async function generateBatchAnthropic(
   const client = new Anthropic({ apiKey, maxRetries: 2 });
   const response = await client.messages.create({
     model: ANTHROPIC_MODEL,
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: [
       {
         type: "text",
@@ -338,10 +338,18 @@ async function generateBatchAnthropic(
       (b): b is Anthropic.TextBlock => b.type === "text",
     );
     const preview = textBlock?.text?.slice(0, 200) ?? "(no text content)";
-    throw new Error(`Anthropic returned no tool_use. Text was: ${preview}`);
+    throw new Error(
+      `Anthropic returned no tool_use (stop_reason=${response.stop_reason}). Text: ${preview}`,
+    );
   }
   const data = toolBlock.input as { questions?: RawQuestion[] };
-  return Array.isArray(data.questions) ? data.questions : [];
+  const questions = Array.isArray(data.questions) ? data.questions : [];
+  if (questions.length === 0) {
+    console.error(
+      `[generate-quiz] Anthropic tool_use empty (stop_reason=${response.stop_reason}, input keys=${Object.keys(data).join(",")})`,
+    );
+  }
+  return questions;
 }
 
 async function generateBatchGemini(
