@@ -358,9 +358,10 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Per-provider hard cap so no single provider can eat the function's 60s
-// budget. 20s leaves room to fall through to one or two more providers.
-const PROVIDER_TIMEOUT_MS = 20000;
+// Pro tier gives 300s, so each provider can take its time. 60s is enough
+// for Cerebras llama-8b to generate 5 questions from a full 3.5k-token
+// chunk without aborting.
+const PROVIDER_TIMEOUT_MS = 60000;
 
 // Models sometimes return ```json ... ``` fences or extra prose. Pull out
 // the first balanced JSON object we can find so structured parsing succeeds.
