@@ -14,9 +14,11 @@ const QUESTIONS_PER_TASK = 5;
 // llama3.1-8b context is 8k. System prompt ~3k + output ~1.5k leaves ~3.5k
 // for the notes chunk. 4 chars/token ≈ 14k characters.
 const MAX_CHARS_PER_CHUNK = 14000;
-// 30 RPM on Cerebras llama3.1-8b → 3 in flight is comfortably under cap.
-const MAX_CONCURRENT_TASKS = 3;
-const INTER_WAVE_DELAY_MS = 1500;
+// Cerebras enforces RPM as a per-second cap (their docs: "60 RPM may be
+// enforced as 1 RPS"). Three parallel calls instantly trip 429. Serialize
+// tasks and pace them just over 1s apart to stay under the limit.
+const MAX_CONCURRENT_TASKS = 1;
+const INTER_WAVE_DELAY_MS = 1100;
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GROQ_MODEL = "llama-3.1-8b-instant";
 // llama3.1-8b: 8k context, 30 RPM, 60k TPM on this account. Combined with
