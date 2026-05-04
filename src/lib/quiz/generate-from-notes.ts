@@ -8,27 +8,21 @@ import type {
   Question,
 } from "@/lib/types/question";
 
-const PER_BATCH = 10;
-// Free-tier providers (Gemini ~10 RPM, Groq 30 RPM) get saturated by 5
-// simultaneous batches when a 100-question quiz fans out to 10 batches at
-// once. Three keeps peak load under every free tier's per-minute cap while
-// staying fast for typical 5–25 question runs (still a single wave).
-const MAX_CONCURRENT_BATCHES = 3;
-// Pause between waves so a burst-then-burst pattern doesn't trip RPM windows
-// on Gemini specifically (10 calls in <60s would otherwise 429 the tail).
+// Each task = one chunk of notes → up to QUESTIONS_PER_TASK questions.
+// llama3.1-8b output budget is ~1.5k tokens, comfortably 5 questions.
+const QUESTIONS_PER_TASK = 5;
+// llama3.1-8b context is 8k. System prompt ~3k + output ~1.5k leaves ~3.5k
+// for the notes chunk. 4 chars/token ≈ 14k characters.
+const MAX_CHARS_PER_CHUNK = 14000;
+// 30 RPM on Cerebras llama3.1-8b → 3 in flight is comfortably under cap.
+const MAX_CONCURRENT_TASKS = 3;
 const INTER_WAVE_DELAY_MS = 1500;
 const GEMINI_MODEL = "gemini-2.5-flash";
-// Groq free tier caps at 6k TPM on every public model — far below a typical
-// notes batch (~18k tokens), so this provider will 413 for big uploads and
-// fall through. Kept in the chain for short notes / small batches.
 const GROQ_MODEL = "llama-3.1-8b-instant";
-// Per the dashboard, this account has exactly two Cerebras models:
-//   llama3.1-8b           — 8k context, too small for typical notes (~18k)
-//   qwen-3-235b-...-2507  — 65k context, 30k TPM, 1 RPM
-// Use the 235b qwen so big notes fit. The 1 RPM cap means parallel batches
-// will throttle, but a single-batch (≤10 question) request goes through
-// cleanly.
-const CEREBRAS_MODEL = "qwen-3-235b-a22b-instruct-2507";
+// llama3.1-8b: 8k context, 30 RPM, 60k TPM on this account. Combined with
+// the chunked-notes approach below, big notes fit and we get the throughput
+// to actually generate full quizzes within Vercel's 60s window.
+const CEREBRAS_MODEL = "llama3.1-8b";
 const SOURCE_LABEL = "From your uploaded notes";
 
 interface RawOption {
@@ -650,49 +644,97 @@ export async function generateQuizFromNotes({
 
   const targetCount = Math.max(1, Math.min(100, Math.floor(count)));
 
-  const batches: { batchIdx: number; count: number }[] = [];
+  // Split notes into chunks small enough to fit Cerebras llama3.1-8b's 8k
+  // context window. Each chunk becomes the source of a few questions; the
+  // model's 30 RPM means we can fan many of these out in parallel without
+  // hitting rate limits.
+  const chunks = chunkNotes(trimmedNotes, MAX_CHARS_PER_CHUNK);
+
+  // Distribute the requested question count across chunks round-robin, with
+  // each task asking for at most QUESTIONS_PER_TASK so the model stays well
+  // inside its output budget.
+  const tasks: { taskIdx: number; chunk: string; count: number }[] = [];
   let remaining = targetCount;
-  let batchIdx = 0;
+  let taskIdx = 0;
   while (remaining > 0) {
-    const take = Math.min(PER_BATCH, remaining);
-    batches.push({ batchIdx, count: take });
+    const take = Math.min(QUESTIONS_PER_TASK, remaining);
+    tasks.push({
+      taskIdx,
+      chunk: chunks[taskIdx % chunks.length]!,
+      count: take,
+    });
     remaining -= take;
-    batchIdx += 1;
+    taskIdx += 1;
   }
 
+  console.log(
+    `[generate-quiz] ${chunks.length} chunk(s), ${tasks.length} task(s) for ${targetCount} questions`,
+  );
+
   const results: Question[][] = [];
-  let lastBatchError: unknown = null;
-  for (let i = 0; i < batches.length; i += MAX_CONCURRENT_BATCHES) {
+  let lastTaskError: unknown = null;
+  for (let i = 0; i < tasks.length; i += MAX_CONCURRENT_TASKS) {
     if (i > 0) await sleep(INTER_WAVE_DELAY_MS);
-    const window = batches.slice(i, i + MAX_CONCURRENT_BATCHES);
-    const windowResults = await Promise.allSettled(
-      window.map((b) =>
+    const wave = tasks.slice(i, i + MAX_CONCURRENT_TASKS);
+    const waveResults = await Promise.allSettled(
+      wave.map((t) =>
         generateBatch(
           {
-            notes: trimmedNotes,
+            notes: t.chunk,
             allowedTypes,
-            count: b.count,
+            count: t.count,
           },
-          b.batchIdx,
+          t.taskIdx,
         ),
       ),
     );
-    for (const r of windowResults) {
+    for (const r of waveResults) {
       if (r.status === "fulfilled") results.push(r.value);
-      else lastBatchError = r.reason;
+      else lastTaskError = r.reason;
     }
   }
 
   const flat = results.flat();
   if (flat.length === 0) {
-    if (lastBatchError) {
-      throw lastBatchError instanceof Error
-        ? lastBatchError
-        : new Error(String(lastBatchError));
+    if (lastTaskError) {
+      throw lastTaskError instanceof Error
+        ? lastTaskError
+        : new Error(String(lastTaskError));
     }
     throw new Error(
       "Couldn't generate any questions from those notes. Try pasting more material or picking a different question type.",
     );
   }
   return flat.slice(0, targetCount);
+}
+
+// Split notes on paragraph boundaries, accumulating paragraphs until the
+// next one would exceed maxChars. Falls back to a hard slice for any single
+// paragraph that's already too long.
+function chunkNotes(notes: string, maxChars: number): string[] {
+  if (notes.length <= maxChars) return [notes];
+  const chunks: string[] = [];
+  const paragraphs = notes.split(/\n\s*\n/);
+  let current = "";
+  for (const para of paragraphs) {
+    if (para.length > maxChars) {
+      if (current) {
+        chunks.push(current);
+        current = "";
+      }
+      for (let i = 0; i < para.length; i += maxChars) {
+        chunks.push(para.slice(i, i + maxChars));
+      }
+      continue;
+    }
+    const candidate = current ? `${current}\n\n${para}` : para;
+    if (candidate.length > maxChars) {
+      chunks.push(current);
+      current = para;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
 }
