@@ -562,24 +562,24 @@ async function generateBatch(
     }
   };
 
-  // Provider chain — each falls through to the next on error/rate-limit:
-  //   Cerebras → Groq → Gemini → apifreellm
+  // Cerebras llama3.1-8b is the only viable provider for this account's
+  // notes setup. Groq's 6k TPM is too small even for chunked notes, Gemini's
+  // 10 RPM gets exhausted on any retry, and apifreellm sits behind a
+  // Cloudflare bot wall that blocks server-side calls. Falling through to
+  // them just burns the function's 60s budget. Gemini stays as the single
+  // last-ditch fallback because a fresh attempt does occasionally succeed.
   if (cerebrasKey) {
     await tryProvider("Cerebras", () =>
       generateBatchCerebras(cerebrasKey, input),
     );
   }
-  if (raws.length === 0 && groqKey) {
-    await tryProvider("Groq", () => generateBatchGroq(groqKey, input));
-  }
   if (raws.length === 0 && geminiKey) {
     await tryProvider("Gemini", () => generateBatchGemini(geminiKey, input));
   }
-  if (raws.length === 0 && freeLLMKey) {
-    await tryProvider("apifreellm", () =>
-      generateBatchFreeLLM(freeLLMKey, input),
-    );
-  }
+  // Groq / apifreellm intentionally skipped — they always fail for this
+  // notes size, and their failures are slow enough to time out the function.
+  void groqKey;
+  void freeLLMKey;
 
   if (raws.length === 0) {
     if (!groqKey && !cerebrasKey && !geminiKey && !freeLLMKey) {
