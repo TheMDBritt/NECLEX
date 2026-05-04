@@ -174,13 +174,25 @@ ${allowed}
 }
 
 function userPrompt(notes: string, allowedTypes: ItemType[], count: number): string {
+  const mixHint =
+    allowedTypes.length > 1
+      ? `\n\nIMPORTANT — type distribution: you must use EVERY allowed type at least once if the notes can support it. Aim for an even split across the ${allowedTypes.length} allowed types (${allowedTypes.join(", ")}); only skew toward one type when the notes genuinely don't support the others. Do NOT default to multiple_choice for everything.`
+      : "";
   return `═══ NOTES (your ONLY source of truth — every fact must come from below) ═══
 
 ${notes}
 
 ═══ END OF NOTES ═══
 
-Generate ${count} NCLEX-RN practice question${count === 1 ? "" : "s"} grounded entirely in the notes above. Allowed item types: ${allowedTypes.join(", ")}. Mix the types in whatever proportion the notes can actually support — if the notes don't contain calculations, don't force fill_in_the_blank; if there's no full clinical scenario, skip bow_tie. Test clinical judgment in NCLEX style (priority, safety, scope, teaching, expected findings) using only what the notes contain. If the notes don't support ${count} good questions, return fewer.`;
+Generate ${count} NCLEX-RN practice question${count === 1 ? "" : "s"} grounded entirely in the notes above. Allowed item types: ${allowedTypes.join(", ")}.${mixHint}
+
+Type-specific rules to honor:
+- multiple_choice: pick when the notes support a single clearly-best answer
+- multiple_response (Select-All-That-Apply): pick when the notes have a list/category where multiple items are independently true
+- fill_in_the_blank: pick when the notes contain a numeric calculation, dose, rate, or conversion
+- bow_tie: pick when the notes describe a specific client scenario with assessment + intervention + monitoring layers
+
+Test clinical judgment in NCLEX style (priority, safety, scope, teaching, expected findings) using only what the notes contain. If the notes don't support ${count} good questions, return fewer.`;
 }
 
 function asOption(raw: RawOption, idx: number): Option {
@@ -306,7 +318,9 @@ async function generateBatchAnthropic(
   const client = new Anthropic({ apiKey, maxRetries: 2 });
   const response = await client.messages.create({
     model: ANTHROPIC_MODEL,
-    max_tokens: 16000,
+    // 25 structured questions average ~6k output tokens; 8k caps inference
+    // time meaningfully without ever truncating real responses.
+    max_tokens: 8000,
     system: [
       {
         type: "text",
